@@ -46,7 +46,7 @@
 ```bash
 export NEXUS_URL="http://localhost:8081"
 export NEXUS_USERNAME="admin"
-export NEXUS_PASSWORD="your-password"
+export NEXUS_PASSWORD="<your-password>"
 export EXPORTER_PORT="8082"
 
 ./nexus-exporter
@@ -60,7 +60,7 @@ docker run -d \
   -p 8082:8082 \
   -e NEXUS_URL="http://nexus:8081" \
   -e NEXUS_USERNAME="admin" \
-  -e NEXUS_PASSWORD="your-password" \
+  -e NEXUS_PASSWORD="<your-password>" \
   nexus-exporter:latest
 ```
 
