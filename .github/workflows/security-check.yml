@@ -1,0 +1,100 @@
+name: Security Check
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run GitLeaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Secret Detection
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+      - name: Check for sensitive patterns
+        run: |
+          echo "Checking for sensitive patterns..."
+          
+          # Check for common secrets
+          patterns=(
+            "password.*=.*[^${}]"
+            "passwd.*=.*[^${}]"
+            "secret.*=.*[^${}]"
+            "token.*=.*[^${}]"
+            "key.*=.*[^${}]"
+            "api_key.*=.*[^${}]"
+            "apikey.*=.*[^${}]"
+            "private_key"
+            "BEGIN RSA PRIVATE KEY"
+            "BEGIN OPENSSH PRIVATE KEY"
+            "BEGIN DSA PRIVATE KEY"
+            "BEGIN EC PRIVATE KEY"
+            "BEGIN PGP PRIVATE KEY"
+          )
+          
+          found=0
+          for pattern in "${patterns[@]}"; do
+            if grep -ri "$pattern" --include="*.go" --include="*.yaml" --include="*.yml" --include="*.json" --include="*.md" . 2>/dev/null | grep -v ".git/" | grep -v "vendor/"; then
+              echo "⚠️  Potential secret found with pattern: $pattern"
+              found=1
+            fi
+          done
+          
+          if [ $found -eq 1 ]; then
+            echo "❌ Sensitive information detected! Please review and remove."
+            exit 1
+          fi
+          
+          echo "✅ No sensitive patterns found"
+
+      - name: Check for hardcoded credentials
+        run: |
+          echo "Checking for hardcoded credentials..."
+          
+          # Check for common credential patterns
+          if grep -rE "(admin|root|user|login).{0,10}(password|pass|pwd).{0,5}=.{0,20}[\"'][^\"']{4,}[\"']" \
+            --include="*.go" --include="*.yaml" --include="*.yml" --include="*.json" . 2>/dev/null | grep -v ".git/" | grep -v "vendor/"; then
+            echo "⚠️  Potential hardcoded credentials found!"
+            exit 1
+          fi
+          
+          echo "✅ No hardcoded credentials found"
+
+      - name: Check .gitignore
+        run: |
+          echo "Checking .gitignore..."
+          
+          required_patterns=(
+            ".env"
+            "*.pem"
+            "*.key"
+            "secrets/"
+            ".kimi"
+          )
+          
+          for pattern in "${required_patterns[@]}"; do
+            if ! grep -q "$pattern" .gitignore 2>/dev/null; then
+              echo "⚠️  Required pattern '$pattern' not found in .gitignore"
+              exit 1
+            fi
+          done
+          
+          echo "✅ .gitignore is properly configured"
