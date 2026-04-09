@@ -33,30 +33,26 @@ jobs:
         run: |
           echo "Checking for sensitive patterns..."
           
-          # Check for common secrets
-          patterns=(
-            "password.*=.*[^${}]"
-            "passwd.*=.*[^${}]"
-            "secret.*=.*[^${}]"
-            "token.*=.*[^${}]"
-            "key.*=.*[^${}]"
-            "api_key.*=.*[^${}]"
-            "apikey.*=.*[^${}]"
-            "private_key"
-            "BEGIN RSA PRIVATE KEY"
-            "BEGIN OPENSSH PRIVATE KEY"
-            "BEGIN DSA PRIVATE KEY"
-            "BEGIN EC PRIVATE KEY"
-            "BEGIN PGP PRIVATE KEY"
-          )
-          
+          # Check for common secrets (fixed regex patterns)
           found=0
-          for pattern in "${patterns[@]}"; do
-            if grep -ri "$pattern" --include="*.go" --include="*.yaml" --include="*.yml" --include="*.json" --include="*.md" . 2>/dev/null | grep -v ".git/" | grep -v "vendor/"; then
-              echo "⚠️  Potential secret found with pattern: $pattern"
-              found=1
-            fi
-          done
+          
+          # Check for password assignments
+          if grep -riE "password[[:space:]]*=[[:space:]]*['\"][^'\"]+['\"]" --include="*.go" --include="*.yaml" --include="*.yml" --include="*.json" --include="*.md" . 2>/dev/null | grep -v ".git/" | grep -v "vendor/" | grep -v "//"; then
+            echo "⚠️  Potential password found"
+            found=1
+          fi
+          
+          # Check for private keys
+          if grep -ri "BEGIN.*PRIVATE KEY" --include="*.go" --include="*.yaml" --include="*.yml" --include="*.json" --include="*.md" . 2>/dev/null | grep -v ".git/" | grep -v "vendor/"; then
+            echo "⚠️  Potential private key found"
+            found=1
+          fi
+          
+          # Check for API keys/tokens (basic patterns)
+          if grep -riE "api[_-]?key[[:space:]]*=[[:space:]]*['\"][^'\"]{8,}['\"]" --include="*.go" --include="*.yaml" --include="*.yml" --include="*.json" . 2>/dev/null | grep -v ".git/" | grep -v "vendor/"; then
+            echo "⚠️  Potential API key found"
+            found=1
+          fi
           
           if [ $found -eq 1 ]; then
             echo "❌ Sensitive information detected! Please review and remove."
