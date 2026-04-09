@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"nexus-exporter/collector"
 	"nexus-exporter/nexus"
@@ -44,19 +45,21 @@ func main() {
 	// 注册收集器
 	prometheus.MustRegister(nexusCollector)
 
-	// 注册内置指标
-	prometheus.MustRegister(prometheus.NewBuildInfoCollector())
+	// 注册内置指标 (使用新版 collectors 包)
+	prometheus.MustRegister(collectors.NewBuildInfoCollector())
 
 	// 设置 HTTP 路由
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		
+
 		// 检查 Nexus 是否可用 (通过状态检查端点)
 		check, err := client.GetStatusCheck()
 		if err != nil {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte(`{"status":"unhealthy","error":"` + err.Error() + `"}`))
+			if _, writeErr := w.Write([]byte(`{"status":"unhealthy","error":"` + err.Error() + `"}`)); writeErr != nil {
+				slog.Error("Failed to write response", "error", writeErr)
+			}
 			return
 		}
 
@@ -66,19 +69,23 @@ func main() {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"healthy","nexus_healthy":` + healthy + `}`))
+		if _, err := w.Write([]byte(`{"status":"healthy","nexus_healthy":` + healthy + `}`)); err != nil {
+			slog.Error("Failed to write response", "error", err)
+		}
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		w.Write([]byte(`<html>
+		if _, err := w.Write([]byte(`<html>
 <head><title>Nexus Exporter</title></head>
 <body>
 <h1>Nexus Exporter</h1>
 <p><a href="/metrics">Metrics</a></p>
 <p><a href="/healthz">Health Check</a></p>
 </body>
-</html>`))
+</html>`)); err != nil {
+			slog.Error("Failed to write response", "error", err)
+		}
 	})
 
 	// 启动 HTTP 服务
