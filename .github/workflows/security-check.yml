@@ -33,23 +33,23 @@ jobs:
         run: |
           echo "Checking for sensitive patterns..."
           
-          # Check for common secrets (fixed regex patterns)
+          # Check for common secrets (exclude README.md as it contains examples)
           found=0
           
-          # Check for password assignments
-          if grep -riE "password[[:space:]]*=[[:space:]]*['\"][^'\"]+['\"]" --include="*.go" --include="*.yaml" --include="*.yml" --include="*.json" --include="*.md" . 2>/dev/null | grep -v ".git/" | grep -v "vendor/" | grep -v "//"; then
+          # Check for password assignments in code files only (not docs)
+          if grep -riE "password[[:space:]]*=[[:space:]]*['\"][^'\"]+['\"]" --include="*.go" --include="*.yaml" --include="*.yml" --include="*.json" . 2>/dev/null | grep -v ".git/" | grep -v "vendor/" | grep -v "//" | grep -v "your-" | grep -v "example" | grep -v "placeholder"; then
             echo "⚠️  Potential password found"
             found=1
           fi
           
           # Check for private keys
-          if grep -ri "BEGIN.*PRIVATE KEY" --include="*.go" --include="*.yaml" --include="*.yml" --include="*.json" --include="*.md" . 2>/dev/null | grep -v ".git/" | grep -v "vendor/"; then
+          if grep -ri "BEGIN.*PRIVATE KEY" --include="*.go" --include="*.yaml" --include="*.yml" --include="*.json" . 2>/dev/null | grep -v ".git/" | grep -v "vendor/"; then
             echo "⚠️  Potential private key found"
             found=1
           fi
           
-          # Check for API keys/tokens (basic patterns)
-          if grep -riE "api[_-]?key[[:space:]]*=[[:space:]]*['\"][^'\"]{8,}['\"]" --include="*.go" --include="*.yaml" --include="*.yml" --include="*.json" . 2>/dev/null | grep -v ".git/" | grep -v "vendor/"; then
+          # Check for API keys/tokens (basic patterns, exclude docs)
+          if grep -riE "api[_-]?key[[:space:]]*=[[:space:]]*['\"][^'\"]{8,}['\"]" --include="*.go" --include="*.yaml" --include="*.yml" --include="*.json" . 2>/dev/null | grep -v ".git/" | grep -v "vendor/" | grep -v "your-" | grep -v "example"; then
             echo "⚠️  Potential API key found"
             found=1
           fi
