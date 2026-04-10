@@ -64,7 +64,7 @@ nexus-exporter [flags]
 | `--nexus.username` | - | `NEXUS_USERNAME` | `admin` | Nexus 用户名 |
 | `--nexus.password` | - | `NEXUS_PASSWORD` | - | Nexus 密码 (必需) |
 | `--port` | - | `EXPORTER_PORT` | `8082` | Exporter 监听端口 |
-| `--insecure` | - | `NEXUS_INSECURE` | `false` | 跳过 TLS 验证 |
+| `--insecure` | - | `NEXUS_INSECURE` | `false` | 跳过 TLS 验证（用于自签名证书） |
 | `--log.level` | - | `LOG_LEVEL` | `info` | 日志级别 (debug/info/warn/error) |
 
 **配置优先级**: 命令行参数 > 环境变量 > 配置文件 (.env) > 默认值
@@ -204,6 +204,30 @@ make docker
 | `/metrics` | Prometheus 指标 |
 | `/healthz` | 健康检查 |
 | `/` | 状态页面 |
+
+## 故障排除
+
+### HTTPS/HTTP 协议不匹配错误
+
+**错误**: `server gave HTTP response to HTTPS client`
+
+**解决方法**: Nexus 服务器使用的是 HTTP 协议，但你配置了 HTTPS。请修改 URL：
+```bash
+# 错误
+--nexus.url=https://192.168.0.110:8081
+
+# 正确
+--nexus.url=http://192.168.0.110:8081
+```
+
+### TLS 证书错误
+
+**错误**: `certificate signed by unknown authority`
+
+**解决方法**: 如果使用自签名证书，添加 `--insecure` 参数：
+```bash
+./nexus-exporter --nexus.url=https://192.168.0.110:8081 --nexus.password=<your-password> --insecure
+```
 
 ## 开发
 

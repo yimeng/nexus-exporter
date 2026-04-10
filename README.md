@@ -60,7 +60,7 @@ nexus-exporter [flags]
 | `--nexus.username` | - | `NEXUS_USERNAME` | `admin` | Nexus username |
 | `--nexus.password` | - | `NEXUS_PASSWORD` | - | Nexus password (required) |
 | `--port` | - | `EXPORTER_PORT` | `8082` | Exporter listen port |
-| `--insecure` | - | `NEXUS_INSECURE` | `false` | Skip TLS verification |
+| `--insecure` | - | `NEXUS_INSECURE` | `false` | Skip TLS verification (for self-signed certificates) |
 | `--log.level` | - | `LOG_LEVEL` | `info` | Log level (debug/info/warn/error) |
 
 **Configuration Priority**: Command line flags > Environment variables > Config file (.env) > Default values
@@ -200,6 +200,30 @@ make docker
 | `/metrics` | Prometheus metrics |
 | `/healthz` | Health check |
 | `/` | Status page |
+
+## Troubleshooting
+
+### HTTPS/HTTP Mismatch Error
+
+**Error**: `server gave HTTP response to HTTPS client`
+
+**Solution**: Your Nexus server is using HTTP, but you specified HTTPS. Change the URL:
+```bash
+# Wrong
+--nexus.url=https://192.168.0.110:8081
+
+# Correct
+--nexus.url=http://192.168.0.110:8081
+```
+
+### TLS Certificate Error
+
+**Error**: `certificate signed by unknown authority`
+
+**Solution**: If using a self-signed certificate, add the `--insecure` flag:
+```bash
+./nexus-exporter --nexus.url=https://192.168.0.110:8081 --nexus.password=<your-password> --insecure
+```
 
 ## Development
 
