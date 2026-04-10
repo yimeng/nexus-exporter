@@ -28,19 +28,26 @@ Deploy nexus-exporter as a systemd service on Linux.
 
 The Nexus user account used by the exporter needs the following permissions:
 
-| Permission | API Endpoint | Purpose |
-|------------|--------------|---------|
-| `nx-healthcheck-read` | `/service/rest/v1/status` | Check Nexus health |
-| `nx-blobstores-read` | `/service/rest/v1/blobstores` | Read blob store metrics |
-| `nx-repository-view-*-*-read` | `/service/rest/v1/repositories` | List repositories |
-| `nx-component-read` | `/service/rest/v1/components` | Read component counts |
-| `nx-assets-read` | `/service/rest/v1/assets` | Read asset information |
-| `nx-tasks-read` | `/service/rest/v1/tasks` | Read task status |
-| `nx-metrics-read` | `/service/metrics/data` | Read JVM metrics |
+| Permission | API Endpoint | Purpose | Grafana Panels |
+|------------|--------------|---------|----------------|
+| `nx-healthcheck-read` | `/service/rest/v1/status` | Check Nexus health | Service Availability |
+| `nx-blobstores-read` | `/service/rest/v1/blobstores` | Read blob store metrics | Blob Store Usage, Disk Usage % |
+| `nx-repository-view-*-*-read` | `/service/rest/v1/repositories` | List repositories | **Total Repositories**, Repository Capacity & Status |
+| `nx-component-read` | `/service/rest/v1/components` | Read component counts | **Components by Repository** |
+| `nx-assets-read` | `/service/rest/v1/assets` | Read asset information | Repository Size, Assets Count |
+| `nx-tasks-read` | `/service/rest/v1/tasks` | Read task status | **Failed Tasks**, Task Health |
+| `nx-metrics-read` | `/service/metrics/data` | Read JVM metrics | JVM Memory, JVM Thread Count |
+
+**Note**: If the following panels show "No data":
+- **Total Repositories**: Check `nx-repository-view-*-*-read` permission
+- **Failed Tasks**: Check `nx-tasks-read` permission  
+- **Components by Repository**: Check `nx-component-read` permission
 
 **Recommended**: Use an admin account or create a dedicated service account with the above permissions.
 
 For Nexus OSS, the default `admin` account has all required permissions.
+
+To create a custom role with minimal permissions, go to **Nexus UI → Security → Roles → Create Role** and assign the permissions listed above.
 
 #### 1. Download Binary
 
