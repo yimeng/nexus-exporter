@@ -567,7 +567,7 @@
       "title": "Repository Capacity & Status",
       "transformations": [
         {
-          "id": "seriesToColumns",
+          "id": "merge",
           "options": {
             "byField": "name"
           }
