@@ -261,6 +261,179 @@ docker run -d \
   nexus-exporter:local
 ```
 
+---
+
+### Monitoring Configuration
+
+Configure your monitoring system to scrape metrics from nexus-exporter.
+
+#### Prometheus
+
+Add to your `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: 'nexus-exporter'
+    static_configs:
+      - targets: ['nexus-exporter:8082']
+    metrics_path: /metrics
+    scrape_interval: 30s
+    scrape_timeout: 10s
+```
+
+#### VictoriaMetrics
+
+Using `scrape_config` file:
+
+```yaml
+# /etc/victoriametrics/scrape.yml
+scrape_configs:
+  - job_name: 'nexus-exporter'
+    static_configs:
+      - targets: ['nexus-exporter:8082']
+        labels:
+          instance: 'nexus-server-01'
+          environment: 'production'
+    metrics_path: /metrics
+    scrape_interval: 30s
+    scrape_timeout: 10s
+```
+
+Start VictoriaMetrics with scrape config:
+
+```bash
+victoria-metrics \
+  -promscrape.config=/etc/victoriametrics/scrape.yml \
+  -retentionPeriod=30d \
+  -httpListenAddr=:8428
+```
+
+#### Docker Compose (Full Stack)
+
+Complete monitoring stack with Nexus, Exporter, VictoriaMetrics and Grafana:
+
+```yaml
+version: '3.8'
+
+services:
+  nexus:
+    image: sonatype/nexus3:3.76.1
+    container_name: nexus
+    ports:
+      - "8081:8081"
+    volumes:
+      - nexus-data:/nexus-data
+    environment:
+      - INSTALL4J_ADD_VM_PARAMS=-Xms1g -Xmx1g
+
+  nexus-exporter:
+    image: ghcr.io/yimeng/nexus-exporter:latest
+    container_name: nexus-exporter
+    ports:
+      - "8082:8082"
+    environment:
+      - NEXUS_URL=http://nexus:8081
+      - NEXUS_USERNAME=admin
+      - NEXUS_PASSWORD=${NEXUS_PASSWORD}
+    depends_on:
+      - nexus
+
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.102.0
+    container_name: victoriametrics
+    ports:
+      - "8428:8428"
+    volumes:
+      - ./victoriametrics.yml:/etc/victoriametrics/scrape.yml:ro
+      - vm-data:/victoria-metrics-data
+    command:
+      - '--promscrape.config=/etc/victoriametrics/scrape.yml'
+      - '--storageDataPath=/victoria-metrics-data'
+      - '--retentionPeriod=30d'
+
+  grafana:
+    image: grafana/grafana:12.4.0
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin123}
+
+volumes:
+  nexus-data:
+  vm-data:
+  grafana-data:
+```
+
+`victoriametrics.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: 'nexus-exporter'
+    static_configs:
+      - targets: ['nexus-exporter:8082']
+    metrics_path: /metrics
+    scrape_interval: 30s
+```
+
+#### Alerting Rules (Prometheus/VictoriaMetrics)
+
+```yaml
+groups:
+  - name: nexus-alerts
+    rules:
+      - alert: NexusDown
+        expr: nexus_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Nexus service is down"
+          description: "Nexus has been down for more than 1 minute"
+
+      - alert: NexusHighDiskUsage
+        expr: (nexus_blobstore_bytes_total / (nexus_blobstore_bytes_total + nexus_blobstore_bytes_free)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Nexus disk usage is high"
+          description: "Blob store {{ $labels.name }} is {{ $value | humanize }}% full"
+
+      - alert: NexusTaskFailed
+        expr: nexus_task_status == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Nexus task is failing"
+          description: "Task {{ $labels.name }} has failed"
+
+      - alert: NexusHighJVMMemoryUsage
+        expr: (nexus_jvm_memory_used_bytes / nexus_jvm_memory_max_bytes) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Nexus JVM memory usage is high"
+          description: "JVM {{ $labels.area }} memory usage is {{ $value | humanize }}%"
+```
+
+#### Grafana Data Source Configuration
+
+**Prometheus Data Source:**
+- URL: `http://prometheus:9090` (or VictoriaMetrics: `http://victoriametrics:8428`)
+- Access: Server
+
+**Dashboard Import:**
+1. Go to Grafana → Create → Import
+2. Enter dashboard ID (if published) or paste JSON
+3. Select Prometheus/VictoriaMetrics data source
+
+Dashboard JSON is available in `grafana/dashboards/nexus-sre-dashboard.json`
+
 ## Usage
 
 ### Command Line Flags

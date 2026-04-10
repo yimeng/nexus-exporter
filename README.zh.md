@@ -261,6 +261,179 @@ docker run -d \
   nexus-exporter:local
 ```
 
+---
+
+### 监控配置
+
+配置您的监控系统从 nexus-exporter 抓取指标。
+
+#### Prometheus
+
+添加到 `prometheus.yml`：
+
+```yaml
+scrape_configs:
+  - job_name: 'nexus-exporter'
+    static_configs:
+      - targets: ['nexus-exporter:8082']
+    metrics_path: /metrics
+    scrape_interval: 30s
+    scrape_timeout: 10s
+```
+
+#### VictoriaMetrics
+
+使用 `scrape_config` 文件：
+
+```yaml
+# /etc/victoriametrics/scrape.yml
+scrape_configs:
+  - job_name: 'nexus-exporter'
+    static_configs:
+      - targets: ['nexus-exporter:8082']
+        labels:
+          instance: 'nexus-server-01'
+          environment: 'production'
+    metrics_path: /metrics
+    scrape_interval: 30s
+    scrape_timeout: 10s
+```
+
+启动 VictoriaMetrics：
+
+```bash
+victoria-metrics \
+  -promscrape.config=/etc/victoriametrics/scrape.yml \
+  -retentionPeriod=30d \
+  -httpListenAddr=:8428
+```
+
+#### Docker Compose (完整监控栈)
+
+包含 Nexus、Exporter、VictoriaMetrics 和 Grafana 的完整监控栈：
+
+```yaml
+version: '3.8'
+
+services:
+  nexus:
+    image: sonatype/nexus3:3.76.1
+    container_name: nexus
+    ports:
+      - "8081:8081"
+    volumes:
+      - nexus-data:/nexus-data
+    environment:
+      - INSTALL4J_ADD_VM_PARAMS=-Xms1g -Xmx1g
+
+  nexus-exporter:
+    image: ghcr.io/yimeng/nexus-exporter:latest
+    container_name: nexus-exporter
+    ports:
+      - "8082:8082"
+    environment:
+      - NEXUS_URL=http://nexus:8081
+      - NEXUS_USERNAME=admin
+      - NEXUS_PASSWORD=${NEXUS_PASSWORD}
+    depends_on:
+      - nexus
+
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.102.0
+    container_name: victoriametrics
+    ports:
+      - "8428:8428"
+    volumes:
+      - ./victoriametrics.yml:/etc/victoriametrics/scrape.yml:ro
+      - vm-data:/victoria-metrics-data
+    command:
+      - '--promscrape.config=/etc/victoriametrics/scrape.yml'
+      - '--storageDataPath=/victoria-metrics-data'
+      - '--retentionPeriod=30d'
+
+  grafana:
+    image: grafana/grafana:12.4.0
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin123}
+
+volumes:
+  nexus-data:
+  vm-data:
+  grafana-data:
+```
+
+`victoriametrics.yml`：
+
+```yaml
+scrape_configs:
+  - job_name: 'nexus-exporter'
+    static_configs:
+      - targets: ['nexus-exporter:8082']
+    metrics_path: /metrics
+    scrape_interval: 30s
+```
+
+#### 告警规则 (Prometheus/VictoriaMetrics)
+
+```yaml
+groups:
+  - name: nexus-alerts
+    rules:
+      - alert: NexusDown
+        expr: nexus_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Nexus 服务宕机"
+          description: "Nexus 已宕机超过 1 分钟"
+
+      - alert: NexusHighDiskUsage
+        expr: (nexus_blobstore_bytes_total / (nexus_blobstore_bytes_total + nexus_blobstore_bytes_free)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Nexus 磁盘使用率过高"
+          description: "Blob 存储 {{ $labels.name }} 使用率 {{ $value | humanize }}%"
+
+      - alert: NexusTaskFailed
+        expr: nexus_task_status == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Nexus 任务执行失败"
+          description: "任务 {{ $labels.name }} 执行失败"
+
+      - alert: NexusHighJVMMemoryUsage
+        expr: (nexus_jvm_memory_used_bytes / nexus_jvm_memory_max_bytes) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Nexus JVM 内存使用率过高"
+          description: "JVM {{ $labels.area }} 内存使用率 {{ $value | humanize }}%"
+```
+
+#### Grafana 数据源配置
+
+**Prometheus 数据源：**
+- URL: `http://prometheus:9090` (或 VictoriaMetrics: `http://victoriametrics:8428`)
+- 访问方式: Server
+
+**导入 Dashboard：**
+1. 进入 Grafana → 创建 → 导入
+2. 输入 dashboard ID 或粘贴 JSON
+3. 选择 Prometheus/VictoriaMetrics 数据源
+
+Dashboard JSON 位于 `grafana/dashboards/nexus-sre-dashboard.json`
+
 ## 使用方法
 
 ### 命令行参数
