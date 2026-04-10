@@ -8,10 +8,6 @@
 
 一个用 Go 编写的 Prometheus Exporter，用于监控 Sonatype Nexus Repository Manager 3.x。
 
-[![Release](https://img.shields.io/github/v/release/yimeng/nexus-exporter)](https://github.com/yimeng/nexus-exporter/releases)
-[![Go Version](https://img.shields.io/badge/go-%3E%3D1.24-blue)](https://golang.org/)
-[![License](https://img.shields.io/github/license/yimeng/nexus-exporter)](LICENSE)
-
 ## 功能特性
 
 - **系统状态**: 监控 Nexus 服务健康状态
