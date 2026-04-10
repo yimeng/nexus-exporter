@@ -8,6 +8,8 @@
 
 一个用 Go 编写的 Prometheus Exporter，用于监控 Sonatype Nexus Repository Manager 3.x。
 
+![Nexus SRE Dashboard](docs/images/dashboard-v1.2.0.png)
+
 ## 功能特性
 
 - **系统状态**: 监控 Nexus 服务健康状态
@@ -131,12 +133,15 @@ docker run -d \
 | `nexus_blobstore_bytes_total` | Gauge | Blob 存储总字节数 |
 | `nexus_blobstore_bytes_free` | Gauge | Blob 存储可用字节数 |
 | `nexus_blobstore_blobs_count` | Gauge | Blob 数量 |
-| `nexus_repository_info` | Gauge | 仓库信息 |
+| `nexus_repository_info` | Gauge | 仓库信息 (名称、格式、类型、blob_store) |
 | `nexus_repository_components_count` | Gauge | 仓库组件数量 |
+| `nexus_repository_online` | Gauge | 仓库在线状态 (1=在线, 0=离线) |
+| `nexus_repository_size_bytes` | Gauge | 仓库总大小（字节） |
+| `nexus_repository_assets_count` | Gauge | 仓库资产数量 |
 | `nexus_jvm_memory_used_bytes` | Gauge | JVM 内存使用量 |
 | `nexus_jvm_memory_max_bytes` | Gauge | JVM 内存最大值 |
 | `nexus_jvm_threads_count` | Gauge | JVM 线程数 |
-| `nexus_task_status` | Gauge | 任务状态 |
+| `nexus_task_status` | Gauge | 任务状态 (1=健康, 0=失败) |
 | `nexus_task_last_run_timestamp` | Gauge | 任务最后执行时间 |
 
 ## Prometheus 配置

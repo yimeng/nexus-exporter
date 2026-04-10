@@ -8,6 +8,8 @@
 
 A Prometheus Exporter written in Go for monitoring Sonatype Nexus Repository Manager 3.x.
 
+![Nexus SRE Dashboard](docs/images/dashboard-v1.2.0.png)
+
 ## Features
 
 - **System Status**: Monitor Nexus service health status
@@ -131,12 +133,15 @@ docker run -d \
 | `nexus_blobstore_bytes_total` | Gauge | Total bytes in blob store |
 | `nexus_blobstore_bytes_free` | Gauge | Available bytes in blob store |
 | `nexus_blobstore_blobs_count` | Gauge | Number of blobs |
-| `nexus_repository_info` | Gauge | Repository information |
+| `nexus_repository_info` | Gauge | Repository information (name, format, type, blob_store) |
 | `nexus_repository_components_count` | Gauge | Number of components in repository |
+| `nexus_repository_online` | Gauge | Repository online status (1=online, 0=offline) |
+| `nexus_repository_size_bytes` | Gauge | Total size of repository in bytes |
+| `nexus_repository_assets_count` | Gauge | Number of assets in repository |
 | `nexus_jvm_memory_used_bytes` | Gauge | JVM memory usage |
 | `nexus_jvm_memory_max_bytes` | Gauge | JVM memory maximum |
 | `nexus_jvm_threads_count` | Gauge | JVM thread count |
-| `nexus_task_status` | Gauge | Task status |
+| `nexus_task_status` | Gauge | Task status (1=healthy, 0=failed) |
 | `nexus_task_last_run_timestamp` | Gauge | Task last run timestamp |
 
 ## Prometheus Configuration
