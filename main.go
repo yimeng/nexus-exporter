@@ -306,11 +306,3 @@ func getBoolValue(flagValue bool, envKey string, defaultValue bool) bool {
 
 	return defaultValue
 }
-
-// getEnv 获取环境变量，如果不存在则返回默认值（保留用于向后兼容）
-func getEnv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
-}
