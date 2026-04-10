@@ -32,22 +32,35 @@ Exporter 使用的 Nexus 用户账号需要以下权限：
 |------|----------|------|--------------|
 | `nx-healthcheck-read` | `/service/rest/v1/status` | 检查 Nexus 健康状态 | 服务可用性 |
 | `nx-blobstores-read` | `/service/rest/v1/blobstores` | 读取 Blob 存储指标 | Blob 存储使用、磁盘使用率 |
-| `nx-repository-view-*-*-read` | `/service/rest/v1/repositories` | 列出仓库 | **仓库总数**、仓库容量与状态 |
-| `nx-component-read` | `/service/rest/v1/components` | 读取组件数量 | **各仓库组件数** |
-| `nx-assets-read` | `/service/rest/v1/assets` | 读取资产信息 | 仓库大小、资产数量 |
+| `nx-repository-view-*-*-read` | `/service/rest/v1/repositories` | 列出仓库 | **仓库总数** |
+| `nx-repository-view-*-*-browse` | `/service/rest/v1/components` | 浏览仓库内容 | **仓库容量与状态**、**各仓库组件数** |
+| `nx-search-read` | `/service/rest/v1/search` | 搜索组件 | **各仓库组件数**（备选） |
+| `nx-repository-view-*-*-browse` | `/service/rest/v1/assets` | 读取资产信息 | 仓库大小、资产数量 |
 | `nx-tasks-read` | `/service/rest/v1/tasks` | 读取任务状态 | **失败任务**、任务健康 |
 | `nx-metrics-read` | `/service/metrics/data` | 读取 JVM 指标 | JVM 内存、JVM 线程数 |
 
-**注意**: 如果以下面板显示 "No data"：
+**Nexus 3.76.1+ 注意**: 如果以下面板显示 "No data"：
 - **仓库总数**: 检查 `nx-repository-view-*-*-read` 权限
+- **仓库容量与状态** / **各仓库组件数**: 检查 `nx-repository-view-*-*-browse` 权限（不是 `nx-component-read`，此权限在 Nexus 3.76.1 中不存在）
 - **失败任务**: 检查 `nx-tasks-read` 权限
-- **各仓库组件数**: 检查 `nx-component-read` 权限
+
+**重要提示**: 在 Nexus 3.76.1 中，不存在 `nx-component-read` 或 `nx-assets-read` 权限。请使用 `nx-repository-view-*-*-browse` 权限来访问组件和资产数据。
 
 **推荐**: 使用 admin 账户或创建具有上述权限的专用服务账户。
 
 对于 Nexus OSS，默认的 `admin` 账户拥有所有必需的权限。
 
 如需创建自定义角色，进入 **Nexus UI → 安全性 → 角色 → 创建角色** 并分配上述权限。
+
+**"No data" 问题快速修复** - 添加这些必需权限：
+```
+nx-repository-view-*-*-read
+nx-repository-view-*-*-browse
+nx-tasks-read
+nx-blobstores-read
+nx-metrics-read
+nx-healthcheck-read
+```
 
 #### 1. 下载二进制文件
 

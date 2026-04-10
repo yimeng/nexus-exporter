@@ -32,22 +32,35 @@ The Nexus user account used by the exporter needs the following permissions:
 |------------|--------------|---------|----------------|
 | `nx-healthcheck-read` | `/service/rest/v1/status` | Check Nexus health | Service Availability |
 | `nx-blobstores-read` | `/service/rest/v1/blobstores` | Read blob store metrics | Blob Store Usage, Disk Usage % |
-| `nx-repository-view-*-*-read` | `/service/rest/v1/repositories` | List repositories | **Total Repositories**, Repository Capacity & Status |
-| `nx-component-read` | `/service/rest/v1/components` | Read component counts | **Components by Repository** |
-| `nx-assets-read` | `/service/rest/v1/assets` | Read asset information | Repository Size, Assets Count |
+| `nx-repository-view-*-*-read` | `/service/rest/v1/repositories` | List repositories | **Total Repositories** |
+| `nx-repository-view-*-*-browse` | `/service/rest/v1/components` | Browse repository content | **Repository Capacity & Status**, **Components by Repository** |
+| `nx-search-read` | `/service/rest/v1/search` | Search components | **Components by Repository** (alternative) |
+| `nx-repository-view-*-*-browse` | `/service/rest/v1/assets` | Read asset information | Repository Size, Assets Count |
 | `nx-tasks-read` | `/service/rest/v1/tasks` | Read task status | **Failed Tasks**, Task Health |
 | `nx-metrics-read` | `/service/metrics/data` | Read JVM metrics | JVM Memory, JVM Thread Count |
 
-**Note**: If the following panels show "No data":
+**Note for Nexus 3.76.1+**: If the following panels show "No data":
 - **Total Repositories**: Check `nx-repository-view-*-*-read` permission
-- **Failed Tasks**: Check `nx-tasks-read` permission  
-- **Components by Repository**: Check `nx-component-read` permission
+- **Repository Capacity & Status** / **Components by Repository**: Check `nx-repository-view-*-*-browse` permission (NOT `nx-component-read`, this permission doesn't exist in Nexus 3.76.1)
+- **Failed Tasks**: Check `nx-tasks-read` permission
+
+**Important**: In Nexus 3.76.1, there is no `nx-component-read` or `nx-assets-read` permission. Use `nx-repository-view-*-*-browse` instead to access component and asset data.
 
 **Recommended**: Use an admin account or create a dedicated service account with the above permissions.
 
 For Nexus OSS, the default `admin` account has all required permissions.
 
 To create a custom role with minimal permissions, go to **Nexus UI → Security → Roles → Create Role** and assign the permissions listed above.
+
+**Quick fix for "No data" issues** - Add these essential permissions:
+```
+nx-repository-view-*-*-read
+nx-repository-view-*-*-browse
+nx-tasks-read
+nx-blobstores-read
+nx-metrics-read
+nx-healthcheck-read
+```
 
 #### 1. Download Binary
 
