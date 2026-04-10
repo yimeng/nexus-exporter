@@ -2,6 +2,10 @@
 
 一个用 Go 编写的 Prometheus Exporter，用于监控 Sonatype Nexus Repository Manager 3.x。
 
+[![Release](https://img.shields.io/github/v/release/yimeng/nexus-exporter)](https://github.com/yimeng/nexus-exporter/releases)
+[![Go Version](https://img.shields.io/badge/go-%3E%3D1.24-blue)](https://golang.org/)
+[![License](https://img.shields.io/github/license/yimeng/nexus-exporter)](LICENSE)
+
 ## 功能特性
 
 - **系统状态**: 监控 Nexus 服务健康状态
@@ -9,6 +13,31 @@
 - **仓库**: 监控仓库信息和组件数量
 - **JVM 指标**: 监控内存使用、线程数
 - **任务**: 监控计划任务执行状态
+
+## 快速开始
+
+### 下载二进制文件
+
+从 [GitHub Releases](https://github.com/yimeng/nexus-exporter/releases/latest) 下载对应平台的二进制文件。
+
+```bash
+# Linux AMD64
+curl -LO https://github.com/yimeng/nexus-exporter/releases/latest/download/nexus-exporter-linux-amd64
+chmod +x nexus-exporter-linux-amd64
+mv nexus-exporter-linux-amd64 nexus-exporter
+```
+
+### 使用 Docker
+
+```bash
+docker run -d \
+  --name nexus-exporter \
+  -p 8082:8082 \
+  -e NEXUS_URL="http://nexus:8081" \
+  -e NEXUS_USERNAME="admin" \
+  -e NEXUS_PASSWORD="<your-password>" \
+  ghcr.io/yimeng/nexus-exporter:latest
+```
 
 ## 使用方法
 
@@ -22,8 +51,6 @@ nexus-exporter [flags]
 
 | 参数 | 短格式 | 环境变量 | 默认值 | 说明 |
 |------|--------|----------|--------|------|
-| 参数 | 短格式 | 环境变量 | 默认值 | 说明 |
-|------|--------|----------|--------|------|
 | `--help` | `-h` | - | - | 显示帮助信息 |
 | `--version` | `-v` | - | - | 显示版本信息 |
 | `--config` | - | - | - | 指定 .env 配置文件路径 |
@@ -34,53 +61,13 @@ nexus-exporter [flags]
 | `--insecure` | - | `NEXUS_INSECURE` | `false` | 跳过 TLS 验证 |
 | `--log.level` | - | `LOG_LEVEL` | `info` | 日志级别 (debug/info/warn/error) |
 
-> **配置优先级**: 命令行参数 > 环境变量 > 配置文件 (.env) > 默认值
+**配置优先级**: 命令行参数 > 环境变量 > 配置文件 (.env) > 默认值
 
-### 示例
-
-#### 查看帮助
-
-```bash
-./nexus-exporter --help
-# 或
-./nexus-exporter -h
-```
-
-#### 查看版本
-
-```bash
-./nexus-exporter --version
-# 或
-./nexus-exporter -v
-```
-
-#### 使用命令行参数运行
-
-```bash
-./nexus-exporter \
-  --nexus.url=http://localhost:8081 \
-  --nexus.username=admin \
-  --nexus.password=<your-password> \
-  --port=8082
-```
-
-#### 使用环境变量运行
-
-```bash
-export NEXUS_URL="http://localhost:8081"
-export NEXUS_USERNAME="admin"
-export NEXUS_PASSWORD="<your-password>"
-export EXPORTER_PORT="8082"
-
-./nexus-exporter
-```
-
-#### 使用配置文件 (.env) 运行
+### 使用配置文件
 
 创建 `.env` 文件：
 
 ```bash
-# .env 文件示例
 cat > .env << EOF
 NEXUS_URL=http://localhost:8081
 NEXUS_USERNAME=admin
@@ -97,10 +84,40 @@ EOF
 ./nexus-exporter
 ```
 
-或者指定配置文件路径：
+或使用指定配置文件：
 
 ```bash
 ./nexus-exporter --config=/path/to/config.env
+```
+
+### 使用环境变量
+
+```bash
+export NEXUS_URL="http://localhost:8081"
+export NEXUS_USERNAME="admin"
+export NEXUS_PASSWORD="<your-password>"
+export EXPORTER_PORT="8082"
+
+./nexus-exporter
+```
+
+### 使用命令行参数
+
+```bash
+./nexus-exporter \
+  --nexus.url=http://localhost:8081 \
+  --nexus.username=admin \
+  --nexus.password=<your-password> \
+  --port=8082
+```
+
+### Docker 使用 .env 文件
+
+```bash
+docker run -d \
+  -p 8082:8082 \
+  --env-file .env \
+  ghcr.io/yimeng/nexus-exporter:latest
 ```
 
 ## 指标列表
@@ -120,56 +137,6 @@ EOF
 | `nexus_task_status` | Gauge | 任务状态 |
 | `nexus_task_last_run_timestamp` | Gauge | 任务最后执行时间 |
 
-## 快速开始
-
-### 环境变量
-
-| 变量名 | 必填 | 默认值 | 描述 |
-|--------|------|--------|------|
-| `NEXUS_URL` | 否 | `http://localhost:8081` | Nexus 地址 |
-| `NEXUS_USERNAME` | 是 | - | Nexus 用户名 |
-| `NEXUS_PASSWORD` | 是 | - | Nexus 密码 |
-| `EXPORTER_PORT` | 否 | `8082` | Exporter 监听端口 |
-| `NEXUS_INSECURE` | 否 | `false` | 跳过 TLS 验证 |
-
-### 运行
-
-#### 方式一：直接运行
-
-```bash
-export NEXUS_URL="http://localhost:8081"
-export NEXUS_USERNAME="admin"
-export NEXUS_PASSWORD="<your-password>"
-export EXPORTER_PORT="8082"
-
-./nexus-exporter
-```
-
-#### 方式二：Docker
-
-```bash
-docker run -d \
-  --name nexus-exporter \
-  -p 8082:8082 \
-  -e NEXUS_URL="http://nexus:8081" \
-  -e NEXUS_USERNAME="admin" \
-  -e NEXUS_PASSWORD="<your-password>" \
-  nexus-exporter:latest
-```
-
-## 构建
-
-```bash
-# 构建
-go build -o nexus-exporter .
-
-# 或使用 Makefile
-make build
-
-# 构建 Docker 镜像
-make docker
-```
-
 ## Prometheus 配置
 
 ```yaml
@@ -179,14 +146,6 @@ scrape_configs:
       - targets: ['localhost:8082']
     metrics_path: /metrics
 ```
-
-## API 端点
-
-| 端点 | 描述 |
-|------|------|
-| `/metrics` | Prometheus 指标 |
-| `/healthz` | 健康检查 |
-| `/` | 状态页面 |
 
 ## 告警规则示例
 
@@ -218,6 +177,27 @@ groups:
         annotations:
           summary: "Nexus 任务执行失败"
 ```
+
+## 构建
+
+```bash
+# 构建
+go build -o nexus-exporter .
+
+# 或使用 Makefile
+make build
+
+# 构建 Docker 镜像
+make docker
+```
+
+## API 端点
+
+| 端点 | 描述 |
+|------|------|
+| `/metrics` | Prometheus 指标 |
+| `/healthz` | 健康检查 |
+| `/` | 状态页面 |
 
 ## 开发
 
