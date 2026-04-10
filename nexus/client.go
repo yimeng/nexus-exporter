@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -50,6 +51,13 @@ func (c *Client) doRequest(method, path string) ([]byte, error) {
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
+		// 提供更友好的错误信息
+		if strings.Contains(err.Error(), "server gave HTTP response to HTTPS client") {
+			return nil, fmt.Errorf("the server is using HTTP, but you specified HTTPS. Please change the URL from 'https://' to 'http://' or check if Nexus is configured for HTTPS")
+		}
+		if strings.Contains(err.Error(), "certificate signed by unknown authority") {
+			return nil, fmt.Errorf("TLS certificate verification failed. If using a self-signed certificate, use the --insecure flag to skip verification")
+		}
 		return nil, err
 	}
 	defer resp.Body.Close()
