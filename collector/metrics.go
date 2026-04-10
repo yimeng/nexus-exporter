@@ -56,7 +56,7 @@ func (c *NexusCollector) collectJVMMetrics(ch chan<- prometheus.Metric) {
 		}
 
 		// 线程数
-		if name == "jvm.threads.count" {
+		if name == "jvm.thread-states.count" {
 			ch <- prometheus.MustNewConstMetric(
 				c.JVMThreads,
 				prometheus.GaugeValue,

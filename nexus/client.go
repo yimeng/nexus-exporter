@@ -305,7 +305,33 @@ func (c *Client) GetRepositories() ([]Repository, error) {
 		return nil, err
 	}
 
+	// 获取每个仓库的详细信息以获取 blob store
+	for i := range repos {
+		details, err := c.GetRepositoryDetails(repos[i].Name)
+		if err != nil {
+			continue // 如果获取详情失败，保留原始信息
+		}
+		if details.Storage != nil {
+			repos[i].Storage = details.Storage
+		}
+	}
+
 	return repos, nil
+}
+
+// GetRepositoryDetails 获取单个仓库详情
+func (c *Client) GetRepositoryDetails(name string) (*Repository, error) {
+	data, err := c.doRequest("GET", "/service/rest/v1/repositories/"+name)
+	if err != nil {
+		return nil, err
+	}
+
+	var repo Repository
+	if err := json.Unmarshal(data, &repo); err != nil {
+		return nil, err
+	}
+
+	return &repo, nil
 }
 
 // TaskList 表示任务列表响应
