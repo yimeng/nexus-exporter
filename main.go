@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -13,31 +15,55 @@ import (
 	"nexus-exporter/nexus"
 )
 
+var (
+	version   = "dev"
+	commit    = "none"
+	date      = "unknown"
+	goVersion = "unknown"
+)
+
+type Config struct {
+	NexusURL     string
+	NexusUser    string
+	NexusPass    string
+	ExporterPort string
+	Insecure     bool
+	LogLevel     string
+}
+
 func main() {
+	cfg := parseFlags()
+
 	// 初始化日志
+	level := slog.LevelInfo
+	if cfg.LogLevel == "debug" {
+		level = slog.LevelDebug
+	} else if cfg.LogLevel == "warn" {
+		level = slog.LevelWarn
+	} else if cfg.LogLevel == "error" {
+		level = slog.LevelError
+	}
+
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
+		Level: level,
 	})))
 
-	// 从环境变量读取配置
-	nexusURL := getEnv("NEXUS_URL", "http://localhost:8081")
-	nexusUser := getEnv("NEXUS_USERNAME", "admin")
-	nexusPass := getEnv("NEXUS_PASSWORD", "")
-	exporterPort := getEnv("EXPORTER_PORT", "8082")
-	insecure := getEnv("NEXUS_INSECURE", "false") == "true"
-
-	if nexusPass == "" {
-		slog.Error("NEXUS_PASSWORD environment variable is required")
+	// 验证必需参数
+	if cfg.NexusPass == "" {
+		slog.Error("Nexus password is required. Use --nexus.password or NEXUS_PASSWORD environment variable")
+		fmt.Fprintln(os.Stderr, "\nUse --help for usage information")
 		os.Exit(1)
 	}
 
 	slog.Info("Starting Nexus Exporter",
-		"nexus_url", nexusURL,
-		"exporter_port", exporterPort,
+		"version", version,
+		"commit", commit,
+		"nexus_url", cfg.NexusURL,
+		"exporter_port", cfg.ExporterPort,
 	)
 
 	// 创建 Nexus 客户端
-	client := nexus.NewClient(nexusURL, nexusUser, nexusPass, insecure)
+	client := nexus.NewClient(cfg.NexusURL, cfg.NexusUser, cfg.NexusPass, cfg.Insecure)
 
 	// 创建收集器
 	nexusCollector := collector.NewNexusCollector(client)
@@ -89,7 +115,7 @@ func main() {
 	})
 
 	// 启动 HTTP 服务
-	addr := ":" + exporterPort
+	addr := ":" + cfg.ExporterPort
 	slog.Info("Server starting", "address", addr)
 
 	server := &http.Server{
@@ -102,6 +128,84 @@ func main() {
 	if err := server.ListenAndServe(); err != nil {
 		slog.Error("Server failed", "error", err)
 		os.Exit(1)
+	}
+}
+
+func parseFlags() Config {
+	var (
+		showVersion  bool
+		showHelp     bool
+		nexusURL     string
+		nexusUser    string
+		nexusPass    string
+		exporterPort string
+		insecure     bool
+		logLevel     string
+	)
+
+	flag.BoolVar(&showVersion, "version", false, "Show version information")
+	flag.BoolVar(&showVersion, "v", false, "Show version information (shorthand)")
+	flag.BoolVar(&showHelp, "help", false, "Show help")
+	flag.BoolVar(&showHelp, "h", false, "Show help (shorthand)")
+
+	flag.StringVar(&nexusURL, "nexus.url", getEnv("NEXUS_URL", "http://localhost:8081"), "Nexus URL")
+	flag.StringVar(&nexusUser, "nexus.username", getEnv("NEXUS_USERNAME", "admin"), "Nexus username")
+	flag.StringVar(&nexusPass, "nexus.password", getEnv("NEXUS_PASSWORD", ""), "Nexus password")
+	flag.StringVar(&exporterPort, "port", getEnv("EXPORTER_PORT", "8082"), "Exporter port")
+	flag.BoolVar(&insecure, "insecure", getEnv("NEXUS_INSECURE", "false") == "true", "Skip TLS verification")
+	flag.StringVar(&logLevel, "log.level", getEnv("LOG_LEVEL", "info"), "Log level (debug, info, warn, error)")
+
+	// 自定义帮助信息
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stdout, "Nexus Exporter - Prometheus exporter for Sonatype Nexus Repository\n\n")
+		fmt.Fprintf(os.Stdout, "Version: %s (commit: %s, built: %s)\n\n", version, commit, date)
+		fmt.Fprintf(os.Stdout, "Usage:\n")
+		fmt.Fprintf(os.Stdout, "  nexus-exporter [flags]\n\n")
+		fmt.Fprintf(os.Stdout, "Flags:\n")
+		fmt.Fprintf(os.Stdout, "  -h, --help          Show help\n")
+		fmt.Fprintf(os.Stdout, "  -v, --version       Show version information\n")
+		fmt.Fprintf(os.Stdout, "      --nexus.url     Nexus URL (default: http://localhost:8081)\n")
+		fmt.Fprintf(os.Stdout, "      --nexus.username Nexus username (default: admin)\n")
+		fmt.Fprintf(os.Stdout, "      --nexus.password Nexus password (required)\n")
+		fmt.Fprintf(os.Stdout, "      --port          Exporter port (default: 8082)\n")
+		fmt.Fprintf(os.Stdout, "      --insecure      Skip TLS verification\n")
+		fmt.Fprintf(os.Stdout, "      --log.level     Log level: debug, info, warn, error (default: info)\n")
+		fmt.Fprintf(os.Stdout, "\nEnvironment Variables:\n")
+		fmt.Fprintf(os.Stdout, "  NEXUS_URL         Nexus URL (default: http://localhost:8081)\n")
+		fmt.Fprintf(os.Stdout, "  NEXUS_USERNAME    Nexus username (default: admin)\n")
+		fmt.Fprintf(os.Stdout, "  NEXUS_PASSWORD    Nexus password (required)\n")
+		fmt.Fprintf(os.Stdout, "  EXPORTER_PORT     Exporter port (default: 8082)\n")
+		fmt.Fprintf(os.Stdout, "  NEXUS_INSECURE    Skip TLS verification (default: false)\n")
+		fmt.Fprintf(os.Stdout, "  LOG_LEVEL         Log level: debug, info, warn, error (default: info)\n")
+		fmt.Fprintf(os.Stdout, "\nExamples:\n")
+		fmt.Fprintf(os.Stdout, "  # Basic usage with environment variables\n")
+		fmt.Fprintf(os.Stdout, "  export NEXUS_PASSWORD=secret123\n")
+		fmt.Fprintf(os.Stdout, "  nexus-exporter\n\n")
+		fmt.Fprintf(os.Stdout, "  # Using command line flags\n")
+		fmt.Fprintf(os.Stdout, "  nexus-exporter --nexus.url=http://nexus:8081 --nexus.username=admin --nexus.password=secret123\n\n")
+		fmt.Fprintf(os.Stdout, "  # Show version\n")
+		fmt.Fprintf(os.Stdout, "  nexus-exporter --version\n")
+	}
+
+	flag.Parse()
+
+	if showHelp {
+		flag.Usage()
+		os.Exit(0)
+	}
+
+	if showVersion {
+		fmt.Printf("nexus-exporter version %s (commit: %s, built: %s, go: %s)\n", version, commit, date, goVersion)
+		os.Exit(0)
+	}
+
+	return Config{
+		NexusURL:     nexusURL,
+		NexusUser:    nexusUser,
+		NexusPass:    nexusPass,
+		ExporterPort: exporterPort,
+		Insecure:     insecure,
+		LogLevel:     logLevel,
 	}
 }
 

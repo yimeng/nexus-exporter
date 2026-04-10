@@ -10,6 +10,68 @@
 - **JVM 指标**: 监控内存使用、线程数
 - **任务**: 监控计划任务执行状态
 
+## 使用方法
+
+### 命令行参数
+
+```bash
+nexus-exporter [flags]
+```
+
+#### 可用参数
+
+| 参数 | 短格式 | 环境变量 | 默认值 | 说明 |
+|------|--------|----------|--------|------|
+| `--help` | `-h` | - | - | 显示帮助信息 |
+| `--version` | `-v` | - | - | 显示版本信息 |
+| `--nexus.url` | - | `NEXUS_URL` | `http://localhost:8081` | Nexus URL |
+| `--nexus.username` | - | `NEXUS_USERNAME` | `admin` | Nexus 用户名 |
+| `--nexus.password` | - | `NEXUS_PASSWORD` | - | Nexus 密码 (必需) |
+| `--port` | - | `EXPORTER_PORT` | `8082` | Exporter 监听端口 |
+| `--insecure` | - | `NEXUS_INSECURE` | `false` | 跳过 TLS 验证 |
+| `--log.level` | - | `LOG_LEVEL` | `info` | 日志级别 (debug/info/warn/error) |
+
+> **注意**: 命令行参数优先级高于环境变量
+
+### 示例
+
+#### 查看帮助
+
+```bash
+./nexus-exporter --help
+# 或
+./nexus-exporter -h
+```
+
+#### 查看版本
+
+```bash
+./nexus-exporter --version
+# 或
+./nexus-exporter -v
+```
+
+#### 使用命令行参数运行
+
+```bash
+./nexus-exporter \
+  --nexus.url=http://localhost:8081 \
+  --nexus.username=admin \
+  --nexus.password=<your-password> \
+  --port=8082
+```
+
+#### 使用环境变量运行
+
+```bash
+export NEXUS_URL="http://localhost:8081"
+export NEXUS_USERNAME="admin"
+export NEXUS_PASSWORD="<your-password>"
+export EXPORTER_PORT="8082"
+
+./nexus-exporter
+```
+
 ## 指标列表
 
 | 指标名称 | 类型 | 描述 |
