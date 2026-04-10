@@ -1,24 +1,26 @@
 # Nexus Exporter
 
-一个用 Go 编写的 Prometheus Exporter，用于监控 Sonatype Nexus Repository Manager 3.x。
-
 [![Release](https://img.shields.io/github/v/release/yimeng/nexus-exporter)](https://github.com/yimeng/nexus-exporter/releases)
 [![Go Version](https://img.shields.io/badge/go-%3E%3D1.24-blue)](https://golang.org/)
 [![License](https://img.shields.io/github/license/yimeng/nexus-exporter)](LICENSE)
 
-## 功能特性
+[中文文档](README.zh.md) | English
 
-- **系统状态**: 监控 Nexus 服务健康状态
-- **Blob 存储**: 监控存储使用情况、Blob 数量
-- **仓库**: 监控仓库信息和组件数量
-- **JVM 指标**: 监控内存使用、线程数
-- **任务**: 监控计划任务执行状态
+A Prometheus Exporter written in Go for monitoring Sonatype Nexus Repository Manager 3.x.
 
-## 快速开始
+## Features
 
-### 下载二进制文件
+- **System Status**: Monitor Nexus service health status
+- **Blob Storage**: Monitor storage usage and blob count
+- **Repositories**: Monitor repository information and component count
+- **JVM Metrics**: Monitor memory usage and thread count
+- **Tasks**: Monitor scheduled task execution status
 
-从 [GitHub Releases](https://github.com/yimeng/nexus-exporter/releases/latest) 下载对应平台的二进制文件。
+## Quick Start
+
+### Download Binary
+
+Download the binary for your platform from [GitHub Releases](https://github.com/yimeng/nexus-exporter/releases/latest).
 
 ```bash
 # Linux AMD64
@@ -27,7 +29,7 @@ chmod +x nexus-exporter-linux-amd64
 mv nexus-exporter-linux-amd64 nexus-exporter
 ```
 
-### 使用 Docker
+### Using Docker
 
 ```bash
 docker run -d \
@@ -39,33 +41,33 @@ docker run -d \
   ghcr.io/yimeng/nexus-exporter:latest
 ```
 
-## 使用方法
+## Usage
 
-### 命令行参数
+### Command Line Flags
 
 ```bash
 nexus-exporter [flags]
 ```
 
-#### 可用参数
+#### Available Flags
 
-| 参数 | 短格式 | 环境变量 | 默认值 | 说明 |
-|------|--------|----------|--------|------|
-| `--help` | `-h` | - | - | 显示帮助信息 |
-| `--version` | `-v` | - | - | 显示版本信息 |
-| `--config` | - | - | - | 指定 .env 配置文件路径 |
+| Flag | Short | Environment Variable | Default | Description |
+|------|-------|---------------------|---------|-------------|
+| `--help` | `-h` | - | - | Show help information |
+| `--version` | `-v` | - | - | Show version information |
+| `--config` | - | - | - | Path to .env config file |
 | `--nexus.url` | - | `NEXUS_URL` | `http://localhost:8081` | Nexus URL |
-| `--nexus.username` | - | `NEXUS_USERNAME` | `admin` | Nexus 用户名 |
-| `--nexus.password` | - | `NEXUS_PASSWORD` | - | Nexus 密码 (必需) |
-| `--port` | - | `EXPORTER_PORT` | `8082` | Exporter 监听端口 |
-| `--insecure` | - | `NEXUS_INSECURE` | `false` | 跳过 TLS 验证 |
-| `--log.level` | - | `LOG_LEVEL` | `info` | 日志级别 (debug/info/warn/error) |
+| `--nexus.username` | - | `NEXUS_USERNAME` | `admin` | Nexus username |
+| `--nexus.password` | - | `NEXUS_PASSWORD` | - | Nexus password (required) |
+| `--port` | - | `EXPORTER_PORT` | `8082` | Exporter listen port |
+| `--insecure` | - | `NEXUS_INSECURE` | `false` | Skip TLS verification |
+| `--log.level` | - | `LOG_LEVEL` | `info` | Log level (debug/info/warn/error) |
 
-**配置优先级**: 命令行参数 > 环境变量 > 配置文件 (.env) > 默认值
+**Configuration Priority**: Command line flags > Environment variables > Config file (.env) > Default values
 
-### 使用配置文件
+### Using Config File
 
-创建 `.env` 文件：
+Create a `.env` file:
 
 ```bash
 cat > .env << EOF
@@ -78,19 +80,19 @@ LOG_LEVEL=info
 EOF
 ```
 
-然后直接运行：
+Then run directly:
 
 ```bash
 ./nexus-exporter
 ```
 
-或使用指定配置文件：
+Or specify config file path:
 
 ```bash
 ./nexus-exporter --config=/path/to/config.env
 ```
 
-### 使用环境变量
+### Using Environment Variables
 
 ```bash
 export NEXUS_URL="http://localhost:8081"
@@ -101,7 +103,7 @@ export EXPORTER_PORT="8082"
 ./nexus-exporter
 ```
 
-### 使用命令行参数
+### Using Command Line Flags
 
 ```bash
 ./nexus-exporter \
@@ -111,7 +113,7 @@ export EXPORTER_PORT="8082"
   --port=8082
 ```
 
-### Docker 使用 .env 文件
+### Docker with .env File
 
 ```bash
 docker run -d \
@@ -120,24 +122,24 @@ docker run -d \
   ghcr.io/yimeng/nexus-exporter:latest
 ```
 
-## 指标列表
+## Metrics
 
-| 指标名称 | 类型 | 描述 |
-|----------|------|------|
-| `nexus_up` | Gauge | Nexus 服务是否可用 (1=up, 0=down) |
-| `nexus_version_info` | Gauge | Nexus 版本信息 |
-| `nexus_blobstore_bytes_total` | Gauge | Blob 存储总字节数 |
-| `nexus_blobstore_bytes_free` | Gauge | Blob 存储可用字节数 |
-| `nexus_blobstore_blobs_count` | Gauge | Blob 数量 |
-| `nexus_repository_info` | Gauge | 仓库信息 |
-| `nexus_repository_components_count` | Gauge | 仓库组件数量 |
-| `nexus_jvm_memory_used_bytes` | Gauge | JVM 内存使用量 |
-| `nexus_jvm_memory_max_bytes` | Gauge | JVM 内存最大值 |
-| `nexus_jvm_threads_count` | Gauge | JVM 线程数 |
-| `nexus_task_status` | Gauge | 任务状态 |
-| `nexus_task_last_run_timestamp` | Gauge | 任务最后执行时间 |
+| Metric Name | Type | Description |
+|-------------|------|-------------|
+| `nexus_up` | Gauge | Nexus service availability (1=up, 0=down) |
+| `nexus_version_info` | Gauge | Nexus version information |
+| `nexus_blobstore_bytes_total` | Gauge | Total bytes in blob store |
+| `nexus_blobstore_bytes_free` | Gauge | Available bytes in blob store |
+| `nexus_blobstore_blobs_count` | Gauge | Number of blobs |
+| `nexus_repository_info` | Gauge | Repository information |
+| `nexus_repository_components_count` | Gauge | Number of components in repository |
+| `nexus_jvm_memory_used_bytes` | Gauge | JVM memory usage |
+| `nexus_jvm_memory_max_bytes` | Gauge | JVM memory maximum |
+| `nexus_jvm_threads_count` | Gauge | JVM thread count |
+| `nexus_task_status` | Gauge | Task status |
+| `nexus_task_last_run_timestamp` | Gauge | Task last run timestamp |
 
-## Prometheus 配置
+## Prometheus Configuration
 
 ```yaml
 scrape_configs:
@@ -147,7 +149,7 @@ scrape_configs:
     metrics_path: /metrics
 ```
 
-## 告警规则示例
+## Alerting Rules Example
 
 ```yaml
 groups:
@@ -159,7 +161,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Nexus 服务不可用"
+          summary: "Nexus service is down"
           
       - alert: NexusBlobStoreLowSpace
         expr: nexus_blobstore_bytes_free / nexus_blobstore_bytes_total < 0.1
@@ -167,7 +169,7 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Nexus Blob 存储空间不足"
+          summary: "Nexus Blob Store low disk space"
           
       - alert: NexusTaskFailed
         expr: nexus_task_status == 0
@@ -175,43 +177,43 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Nexus 任务执行失败"
+          summary: "Nexus task execution failed"
 ```
 
-## 构建
+## Building
 
 ```bash
-# 构建
+# Build
 go build -o nexus-exporter .
 
-# 或使用 Makefile
+# Or use Makefile
 make build
 
-# 构建 Docker 镜像
+# Build Docker image
 make docker
 ```
 
-## API 端点
+## API Endpoints
 
-| 端点 | 描述 |
-|------|------|
-| `/metrics` | Prometheus 指标 |
-| `/healthz` | 健康检查 |
-| `/` | 状态页面 |
+| Endpoint | Description |
+|----------|-------------|
+| `/metrics` | Prometheus metrics |
+| `/healthz` | Health check |
+| `/` | Status page |
 
-## 开发
+## Development
 
 ```bash
-# 安装依赖
+# Install dependencies
 go mod tidy
 
-# 运行测试
+# Run tests
 go test ./...
 
-# 格式化代码
+# Format code
 go fmt ./...
 ```
 
-## 许可证
+## License
 
 MIT
