@@ -29,7 +29,7 @@
       "type": "row"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Nexus service availability - 1 means UP, 0 means DOWN",
       "fieldConfig": {
         "defaults": {
@@ -57,7 +57,7 @@
       "type": "stat"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Current Nexus version",
       "fieldConfig": {
         "defaults": {"custom": {"displayMode": "json-view"}},
@@ -76,7 +76,7 @@
       "type": "stat"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Uptime percentage over last 24h",
       "fieldConfig": {
         "defaults": {
@@ -98,7 +98,7 @@
       "type": "stat"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Number of repositories",
       "fieldConfig": {
         "defaults": {"unit": "none"},
@@ -126,7 +126,7 @@
       "type": "row"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Blob store usage over time",
       "fieldConfig": {
         "defaults": {"custom": {"drawStyle": "line", "lineWidth": 2}, "unit": "bytes"},
@@ -151,7 +151,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Blob store disk usage percentage",
       "fieldConfig": {
         "defaults": {
@@ -176,7 +176,7 @@
       "type": "gauge"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Number of blobs per blob store",
       "fieldConfig": {
         "defaults": {"unit": "none"},
@@ -196,7 +196,7 @@
       "type": "stat"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Components count by repository",
       "fieldConfig": {
         "defaults": {"unit": "none"},
@@ -225,7 +225,7 @@
       "type": "row"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "JVM memory usage",
       "fieldConfig": {
         "defaults": {"custom": {"drawStyle": "line", "lineWidth": 2}, "unit": "bytes"},
@@ -250,7 +250,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "JVM thread count",
       "fieldConfig": {
         "defaults": {"unit": "none"},
@@ -279,7 +279,7 @@
       "type": "row"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Total number of scheduled tasks",
       "fieldConfig": {
         "defaults": {
@@ -302,7 +302,7 @@
       "type": "stat"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Number of healthy tasks",
       "fieldConfig": {
         "defaults": {
@@ -325,7 +325,7 @@
       "type": "stat"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Number of failed tasks",
       "fieldConfig": {
         "defaults": {
@@ -357,7 +357,7 @@
       "type": "stat"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Task health percentage",
       "fieldConfig": {
         "defaults": {
@@ -387,7 +387,7 @@
       "type": "stat"
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Task health status overview",
       "fieldConfig": {
         "defaults": {
@@ -491,7 +491,7 @@
       ]
     },
     {
-      "datasource": "VictoriaMetrics",
+      "datasource": "${datasource}",
       "description": "Repository capacity, status and metrics",
       "fieldConfig": {
         "defaults": {
@@ -613,7 +613,7 @@
   "schemaVersion": 41,
   "style": "dark",
   "tags": ["nexus", "sre", "monitoring"],
-  "templating": {"list": []},
+  "templating": {"list": [{"name": "datasource", "type": "datasource", "query": "prometheus", "current": {}, "hide": 0, "includeAll": false, "multi": false, "options": [], "refresh": 1, "regex": "", "skipUrlSync": false, "title": "Data Source", "description": "Select Prometheus or VictoriaMetrics data source"}]},
   "time": {"from": "now-6h", "to": "now"},
   "timepicker": {"refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]},
   "timezone": "browser",
