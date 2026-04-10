@@ -7,13 +7,19 @@ After=network.target
 Type=simple
 User=nexus-exporter
 Group=nexus-exporter
-ExecStart=/usr/local/bin/nexus-exporter \
-  --nexus.url=http://localhost:8081 \
-  --nexus.username=admin \
-  --nexus.password=${NEXUS_PASSWORD} \
-  --port=8082
+WorkingDirectory=/var/lib/nexus-exporter
+
+# Method 1: Using EnvironmentFile (variables loaded into environment)
+EnvironmentFile=/etc/nexus-exporter/nexus-exporter.conf
+ExecStart=/usr/local/bin/nexus-exporter
+
+# Method 2: Alternative - use --config flag (uncomment if Method 1 doesn't work)
+# ExecStart=/usr/local/bin/nexus-exporter --config=/etc/nexus-exporter/nexus-exporter.env
+
 Restart=always
 RestartSec=5
+StartLimitInterval=60s
+StartLimitBurst=3
 
 # Security hardening
 NoNewPrivileges=true
@@ -22,8 +28,8 @@ ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths=/var/lib/nexus-exporter
 
-# Environment file for sensitive data
-EnvironmentFile=-/etc/nexus-exporter/nexus-exporter.conf
+# Resource limits
+LimitNOFILE=65536
 
 [Install]
 WantedBy=multi-user.target

@@ -24,6 +24,24 @@ A Prometheus Exporter written in Go for monitoring Sonatype Nexus Repository Man
 
 Deploy nexus-exporter as a systemd service on Linux.
 
+#### Prerequisites: Nexus User Permissions
+
+The Nexus user account used by the exporter needs the following permissions:
+
+| Permission | API Endpoint | Purpose |
+|------------|--------------|---------|
+| `nx-healthcheck-read` | `/service/rest/v1/status` | Check Nexus health |
+| `nx-blobstores-read` | `/service/rest/v1/blobstores` | Read blob store metrics |
+| `nx-repository-view-*-*-read` | `/service/rest/v1/repositories` | List repositories |
+| `nx-component-read` | `/service/rest/v1/components` | Read component counts |
+| `nx-assets-read` | `/service/rest/v1/assets` | Read asset information |
+| `nx-tasks-read` | `/service/rest/v1/tasks` | Read task status |
+| `nx-metrics-read` | `/service/metrics/data` | Read JVM metrics |
+
+**Recommended**: Use an admin account or create a dedicated service account with the above permissions.
+
+For Nexus OSS, the default `admin` account has all required permissions.
+
 #### 1. Download Binary
 
 ```bash
@@ -126,6 +144,39 @@ sudo journalctl -u nexus-exporter -f
 # Test metrics endpoint
 curl http://localhost:8082/metrics
 ```
+
+#### Troubleshooting
+
+**Service fails to start with "Nexus password is required"**
+
+If you see this error in logs:
+```
+Nexus password is required. Use --nexus.password, NEXUS_PASSWORD environment variable, or .env file
+```
+
+Check that:
+1. Configuration file exists and has correct permissions:
+   ```bash
+   sudo ls -la /etc/nexus-exporter/nexus-exporter.conf
+   # Should be: -rw------- root nexus-exporter
+   ```
+
+2. Environment variables are loaded (test with):
+   ```bash
+   sudo systemctl show nexus-exporter --property=Environment
+   ```
+
+3. Alternative: Use `--config` flag in service file:
+   ```ini
+   ExecStart=/usr/local/bin/nexus-exporter --config=/etc/nexus-exporter/nexus-exporter.conf
+   ```
+
+**Permission denied errors**
+
+If you see 401/403 errors in logs, check:
+1. Nexus user credentials are correct
+2. Nexus user has required permissions (see Prerequisites section)
+3. For non-admin users, ensure role includes: `nx-healthcheck-read`, `nx-blobstores-read`, `nx-repository-view-*-*-read`, `nx-tasks-read`, `nx-metrics-read`
 
 ---
 

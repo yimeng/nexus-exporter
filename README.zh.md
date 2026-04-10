@@ -24,6 +24,24 @@
 
 在 Linux 上部署 nexus-exporter 作为 systemd 服务。
 
+#### 前置条件: Nexus 用户权限
+
+Exporter 使用的 Nexus 用户账号需要以下权限：
+
+| 权限 | API 端点 | 用途 |
+|------|----------|------|
+| `nx-healthcheck-read` | `/service/rest/v1/status` | 检查 Nexus 健康状态 |
+| `nx-blobstores-read` | `/service/rest/v1/blobstores` | 读取 Blob 存储指标 |
+| `nx-repository-view-*-*-read` | `/service/rest/v1/repositories` | 列出仓库 |
+| `nx-component-read` | `/service/rest/v1/components` | 读取组件数量 |
+| `nx-assets-read` | `/service/rest/v1/assets` | 读取资产信息 |
+| `nx-tasks-read` | `/service/rest/v1/tasks` | 读取任务状态 |
+| `nx-metrics-read` | `/service/metrics/data` | 读取 JVM 指标 |
+
+**推荐**: 使用 admin 账户或创建具有上述权限的专用服务账户。
+
+对于 Nexus OSS，默认的 `admin` 账户拥有所有必需的权限。
+
 #### 1. 下载二进制文件
 
 ```bash
@@ -126,6 +144,39 @@ sudo journalctl -u nexus-exporter -f
 # 测试指标端点
 curl http://localhost:8082/metrics
 ```
+
+#### 故障排除
+
+**服务启动失败，提示 "Nexus password is required"**
+
+如果在日志中看到此错误：
+```
+Nexus password is required. Use --nexus.password, NEXUS_PASSWORD environment variable, or .env file
+```
+
+请检查：
+1. 配置文件存在且权限正确：
+   ```bash
+   sudo ls -la /etc/nexus-exporter/nexus-exporter.conf
+   # 应该是: -rw------- root nexus-exporter
+   ```
+
+2. 环境变量已加载（测试命令）：
+   ```bash
+   sudo systemctl show nexus-exporter --property=Environment
+   ```
+
+3. 替代方案：在服务文件中使用 `--config` 参数：
+   ```ini
+   ExecStart=/usr/local/bin/nexus-exporter --config=/etc/nexus-exporter/nexus-exporter.conf
+   ```
+
+**权限被拒绝错误**
+
+如果日志中看到 401/403 错误，请检查：
+1. Nexus 用户凭据是否正确
+2. Nexus 用户是否具有所需权限（参见前置条件部分）
+3. 对于非管理员用户，确保角色包含：`nx-healthcheck-read`、`nx-blobstores-read`、`nx-repository-view-*-*-read`、`nx-tasks-read`、`nx-metrics-read`
 
 ---
 
