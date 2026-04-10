@@ -58,8 +58,20 @@ nx-repository-view-*-*-read
 nx-repository-view-*-*-browse
 nx-tasks-read
 nx-blobstores-read
-nx-metrics-read
+nx-metrics-all
 nx-healthcheck-read
+nx-healthcheck-summary-read
+```
+
+**Minimum required permissions (tested on Nexus 3.76.1):**
+```
+nx-blobstores-read
+nx-healthcheck-read
+nx-healthcheck-summary-read
+nx-metrics-all
+nx-repository-view-*-*-browse
+nx-repository-view-*-*-read
+nx-tasks-read
 ```
 
 #### 1. Download Binary
