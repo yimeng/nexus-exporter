@@ -20,27 +20,194 @@
 
 ## 快速开始
 
-### 下载二进制文件
+### 二进制部署 (Systemd)
 
-从 [GitHub Releases](https://github.com/yimeng/nexus-exporter/releases/latest) 下载对应平台的二进制文件。
+在 Linux 上部署 nexus-exporter 作为 systemd 服务。
+
+#### 1. 下载二进制文件
 
 ```bash
-# Linux AMD64
-curl -LO https://github.com/yimeng/nexus-exporter/releases/latest/download/nexus-exporter-linux-amd64
-chmod +x nexus-exporter-linux-amd64
-mv nexus-exporter-linux-amd64 nexus-exporter
+# 检测架构
+ARCH=$(uname -m)
+case $ARCH in
+  x86_64) ARCH="amd64" ;;
+  aarch64) ARCH="arm64" ;;
+  *) echo "不支持的架构: $ARCH"; exit 1 ;;
+esac
+
+# 下载最新版本
+curl -LO "https://github.com/yimeng/nexus-exporter/releases/latest/download/nexus-exporter-linux-${ARCH}"
+sudo install -m 755 "nexus-exporter-linux-${ARCH}" /usr/local/bin/nexus-exporter
+rm "nexus-exporter-linux-${ARCH}"
 ```
 
-### 使用 Docker
+#### 2. 创建用户和目录
+
+```bash
+# 创建专用用户
+sudo useradd --system --no-create-home --shell /usr/sbin/nologin nexus-exporter
+
+# 创建配置目录
+sudo mkdir -p /etc/nexus-exporter
+sudo chmod 750 /etc/nexus-exporter
+```
+
+#### 3. 配置
+
+创建包含 Nexus 凭证的配置文件：
+
+```bash
+sudo tee /etc/nexus-exporter/nexus-exporter.conf << 'EOF'
+NEXUS_URL=http://localhost:8081
+NEXUS_USERNAME=admin
+NEXUS_PASSWORD=your-nexus-password
+EXPORTER_PORT=8082
+LOG_LEVEL=info
+EOF
+
+# 保护配置文件
+sudo chmod 600 /etc/nexus-exporter/nexus-exporter.conf
+sudo chown root:nexus-exporter /etc/nexus-exporter/nexus-exporter.conf
+```
+
+#### 4. 安装 Systemd 服务
+
+```bash
+# 下载服务文件
+curl -L -o /tmp/nexus-exporter.service \
+  https://raw.githubusercontent.com/yimeng/nexus-exporter/master/systemd/nexus-exporter.service
+
+# 安装并重新加载
+sudo install -m 644 /tmp/nexus-exporter.service /etc/systemd/system/
+sudo systemctl daemon-reload
+```
+
+或手动创建：
+
+```bash
+sudo tee /etc/systemd/system/nexus-exporter.service << 'EOF'
+[Unit]
+Description=Nexus Exporter for Prometheus
+After=network.target
+
+[Service]
+Type=simple
+User=nexus-exporter
+Group=nexus-exporter
+EnvironmentFile=/etc/nexus-exporter/nexus-exporter.conf
+ExecStart=/usr/local/bin/nexus-exporter
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+```
+
+#### 5. 启动服务
+
+```bash
+# 启用并启动服务
+sudo systemctl enable nexus-exporter
+sudo systemctl start nexus-exporter
+
+# 检查状态
+sudo systemctl status nexus-exporter
+
+# 查看日志
+sudo journalctl -u nexus-exporter -f
+```
+
+#### 6. 验证
+
+```bash
+# 测试指标端点
+curl http://localhost:8082/metrics
+```
+
+---
+
+### Docker 部署
+
+使用 Docker 或 Docker Compose 运行 nexus-exporter。
+
+#### 方式 1: Docker Run
 
 ```bash
 docker run -d \
   --name nexus-exporter \
+  --restart unless-stopped \
   -p 8082:8082 \
   -e NEXUS_URL="http://nexus:8081" \
   -e NEXUS_USERNAME="admin" \
-  -e NEXUS_PASSWORD="<your-password>" \
+  -e NEXUS_PASSWORD="your-nexus-password" \
+  -e EXPORTER_PORT="8082" \
+  -e LOG_LEVEL="info" \
   ghcr.io/yimeng/nexus-exporter:latest
+```
+
+#### 方式 2: Docker Compose
+
+创建 `docker-compose.yml`：
+
+```yaml
+version: '3.8'
+
+services:
+  nexus-exporter:
+    image: ghcr.io/yimeng/nexus-exporter:latest
+    container_name: nexus-exporter
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      - NEXUS_URL=http://nexus:8081
+      - NEXUS_USERNAME=admin
+      - NEXUS_PASSWORD=${NEXUS_PASSWORD}
+      - EXPORTER_PORT=8082
+      - LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8082/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+```
+
+启动：
+
+```bash
+# 创建 .env 文件存储敏感数据
+echo "NEXUS_PASSWORD=your-nexus-password" > .env
+
+# 启动容器
+docker compose up -d
+
+# 查看日志
+docker compose logs -f
+
+# 检查状态
+docker compose ps
+```
+
+#### 方式 3: 从源码构建
+
+```bash
+# 克隆仓库
+git clone https://github.com/yimeng/nexus-exporter.git
+cd nexus-exporter
+
+# 构建镜像
+docker build -t nexus-exporter:local .
+
+# 运行
+docker run -d \
+  --name nexus-exporter \
+  -p 8082:8082 \
+  -e NEXUS_PASSWORD="your-nexus-password" \
+  nexus-exporter:local
 ```
 
 ## 使用方法

@@ -20,27 +20,194 @@ A Prometheus Exporter written in Go for monitoring Sonatype Nexus Repository Man
 
 ## Quick Start
 
-### Download Binary
+### Binary Deployment (Systemd)
 
-Download the binary for your platform from [GitHub Releases](https://github.com/yimeng/nexus-exporter/releases/latest).
+Deploy nexus-exporter as a systemd service on Linux.
+
+#### 1. Download Binary
 
 ```bash
-# Linux AMD64
-curl -LO https://github.com/yimeng/nexus-exporter/releases/latest/download/nexus-exporter-linux-amd64
-chmod +x nexus-exporter-linux-amd64
-mv nexus-exporter-linux-amd64 nexus-exporter
+# Detect architecture
+ARCH=$(uname -m)
+case $ARCH in
+  x86_64) ARCH="amd64" ;;
+  aarch64) ARCH="arm64" ;;
+  *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
+esac
+
+# Download latest release
+curl -LO "https://github.com/yimeng/nexus-exporter/releases/latest/download/nexus-exporter-linux-${ARCH}"
+sudo install -m 755 "nexus-exporter-linux-${ARCH}" /usr/local/bin/nexus-exporter
+rm "nexus-exporter-linux-${ARCH}"
 ```
 
-### Using Docker
+#### 2. Create User and Directories
+
+```bash
+# Create dedicated user
+sudo useradd --system --no-create-home --shell /usr/sbin/nologin nexus-exporter
+
+# Create configuration directory
+sudo mkdir -p /etc/nexus-exporter
+sudo chmod 750 /etc/nexus-exporter
+```
+
+#### 3. Configure
+
+Create configuration file with Nexus credentials:
+
+```bash
+sudo tee /etc/nexus-exporter/nexus-exporter.conf << 'EOF'
+NEXUS_URL=http://localhost:8081
+NEXUS_USERNAME=admin
+NEXUS_PASSWORD=your-nexus-password
+EXPORTER_PORT=8082
+LOG_LEVEL=info
+EOF
+
+# Secure the configuration file
+sudo chmod 600 /etc/nexus-exporter/nexus-exporter.conf
+sudo chown root:nexus-exporter /etc/nexus-exporter/nexus-exporter.conf
+```
+
+#### 4. Install Systemd Service
+
+```bash
+# Download service file
+curl -L -o /tmp/nexus-exporter.service \
+  https://raw.githubusercontent.com/yimeng/nexus-exporter/master/systemd/nexus-exporter.service
+
+# Install and reload
+sudo install -m 644 /tmp/nexus-exporter.service /etc/systemd/system/
+sudo systemctl daemon-reload
+```
+
+Or create manually:
+
+```bash
+sudo tee /etc/systemd/system/nexus-exporter.service << 'EOF'
+[Unit]
+Description=Nexus Exporter for Prometheus
+After=network.target
+
+[Service]
+Type=simple
+User=nexus-exporter
+Group=nexus-exporter
+EnvironmentFile=/etc/nexus-exporter/nexus-exporter.conf
+ExecStart=/usr/local/bin/nexus-exporter
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+```
+
+#### 5. Start Service
+
+```bash
+# Enable and start service
+sudo systemctl enable nexus-exporter
+sudo systemctl start nexus-exporter
+
+# Check status
+sudo systemctl status nexus-exporter
+
+# View logs
+sudo journalctl -u nexus-exporter -f
+```
+
+#### 6. Verify
+
+```bash
+# Test metrics endpoint
+curl http://localhost:8082/metrics
+```
+
+---
+
+### Docker Deployment
+
+Run nexus-exporter using Docker or Docker Compose.
+
+#### Option 1: Docker Run
 
 ```bash
 docker run -d \
   --name nexus-exporter \
+  --restart unless-stopped \
   -p 8082:8082 \
   -e NEXUS_URL="http://nexus:8081" \
   -e NEXUS_USERNAME="admin" \
-  -e NEXUS_PASSWORD="<your-password>" \
+  -e NEXUS_PASSWORD="your-nexus-password" \
+  -e EXPORTER_PORT="8082" \
+  -e LOG_LEVEL="info" \
   ghcr.io/yimeng/nexus-exporter:latest
+```
+
+#### Option 2: Docker Compose
+
+Create `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  nexus-exporter:
+    image: ghcr.io/yimeng/nexus-exporter:latest
+    container_name: nexus-exporter
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      - NEXUS_URL=http://nexus:8081
+      - NEXUS_USERNAME=admin
+      - NEXUS_PASSWORD=${NEXUS_PASSWORD}
+      - EXPORTER_PORT=8082
+      - LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8082/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+```
+
+Start with:
+
+```bash
+# Create .env file for sensitive data
+echo "NEXUS_PASSWORD=your-nexus-password" > .env
+
+# Start container
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Check status
+docker compose ps
+```
+
+#### Option 3: Build from Source
+
+```bash
+# Clone repository
+git clone https://github.com/yimeng/nexus-exporter.git
+cd nexus-exporter
+
+# Build image
+docker build -t nexus-exporter:local .
+
+# Run
+docker run -d \
+  --name nexus-exporter \
+  -p 8082:8082 \
+  -e NEXUS_PASSWORD="your-nexus-password" \
+  nexus-exporter:local
 ```
 
 ## Usage

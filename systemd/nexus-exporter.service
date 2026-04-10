@@ -1,0 +1,29 @@
+[Unit]
+Description=Nexus Exporter for Prometheus
+Documentation=https://github.com/yimeng/nexus-exporter
+After=network.target
+
+[Service]
+Type=simple
+User=nexus-exporter
+Group=nexus-exporter
+ExecStart=/usr/local/bin/nexus-exporter \
+  --nexus.url=http://localhost:8081 \
+  --nexus.username=admin \
+  --nexus.password=${NEXUS_PASSWORD} \
+  --port=8082
+Restart=always
+RestartSec=5
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/nexus-exporter
+
+# Environment file for sensitive data
+EnvironmentFile=-/etc/nexus-exporter/nexus-exporter.conf
+
+[Install]
+WantedBy=multi-user.target
