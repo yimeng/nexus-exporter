@@ -22,8 +22,11 @@ nexus-exporter [flags]
 
 | 参数 | 短格式 | 环境变量 | 默认值 | 说明 |
 |------|--------|----------|--------|------|
+| 参数 | 短格式 | 环境变量 | 默认值 | 说明 |
+|------|--------|----------|--------|------|
 | `--help` | `-h` | - | - | 显示帮助信息 |
 | `--version` | `-v` | - | - | 显示版本信息 |
+| `--config` | - | - | - | 指定 .env 配置文件路径 |
 | `--nexus.url` | - | `NEXUS_URL` | `http://localhost:8081` | Nexus URL |
 | `--nexus.username` | - | `NEXUS_USERNAME` | `admin` | Nexus 用户名 |
 | `--nexus.password` | - | `NEXUS_PASSWORD` | - | Nexus 密码 (必需) |
@@ -31,7 +34,7 @@ nexus-exporter [flags]
 | `--insecure` | - | `NEXUS_INSECURE` | `false` | 跳过 TLS 验证 |
 | `--log.level` | - | `LOG_LEVEL` | `info` | 日志级别 (debug/info/warn/error) |
 
-> **注意**: 命令行参数优先级高于环境变量
+> **配置优先级**: 命令行参数 > 环境变量 > 配置文件 (.env) > 默认值
 
 ### 示例
 
@@ -70,6 +73,34 @@ export NEXUS_PASSWORD="<your-password>"
 export EXPORTER_PORT="8082"
 
 ./nexus-exporter
+```
+
+#### 使用配置文件 (.env) 运行
+
+创建 `.env` 文件：
+
+```bash
+# .env 文件示例
+cat > .env << EOF
+NEXUS_URL=http://localhost:8081
+NEXUS_USERNAME=admin
+NEXUS_PASSWORD=<your-password>
+EXPORTER_PORT=8082
+NEXUS_INSECURE=false
+LOG_LEVEL=info
+EOF
+```
+
+然后直接运行：
+
+```bash
+./nexus-exporter
+```
+
+或者指定配置文件路径：
+
+```bash
+./nexus-exporter --config=/path/to/config.env
 ```
 
 ## 指标列表

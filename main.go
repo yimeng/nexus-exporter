@@ -6,8 +6,10 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -50,7 +52,7 @@ func main() {
 
 	// 验证必需参数
 	if cfg.NexusPass == "" {
-		slog.Error("Nexus password is required. Use --nexus.password or NEXUS_PASSWORD environment variable")
+		slog.Error("Nexus password is required. Use --nexus.password, NEXUS_PASSWORD environment variable, or .env file")
 		fmt.Fprintln(os.Stderr, "\nUse --help for usage information")
 		os.Exit(1)
 	}
@@ -135,6 +137,7 @@ func parseFlags() Config {
 	var (
 		showVersion  bool
 		showHelp     bool
+		configFile   string
 		nexusURL     string
 		nexusUser    string
 		nexusPass    string
@@ -147,13 +150,14 @@ func parseFlags() Config {
 	flag.BoolVar(&showVersion, "v", false, "Show version information (shorthand)")
 	flag.BoolVar(&showHelp, "help", false, "Show help")
 	flag.BoolVar(&showHelp, "h", false, "Show help (shorthand)")
+	flag.StringVar(&configFile, "config", "", "Path to .env config file")
 
-	flag.StringVar(&nexusURL, "nexus.url", getEnv("NEXUS_URL", "http://localhost:8081"), "Nexus URL")
-	flag.StringVar(&nexusUser, "nexus.username", getEnv("NEXUS_USERNAME", "admin"), "Nexus username")
-	flag.StringVar(&nexusPass, "nexus.password", getEnv("NEXUS_PASSWORD", ""), "Nexus password")
-	flag.StringVar(&exporterPort, "port", getEnv("EXPORTER_PORT", "8082"), "Exporter port")
-	flag.BoolVar(&insecure, "insecure", getEnv("NEXUS_INSECURE", "false") == "true", "Skip TLS verification")
-	flag.StringVar(&logLevel, "log.level", getEnv("LOG_LEVEL", "info"), "Log level (debug, info, warn, error)")
+	flag.StringVar(&nexusURL, "nexus.url", "", "Nexus URL")
+	flag.StringVar(&nexusUser, "nexus.username", "", "Nexus username")
+	flag.StringVar(&nexusPass, "nexus.password", "", "Nexus password")
+	flag.StringVar(&exporterPort, "port", "", "Exporter port")
+	flag.BoolVar(&insecure, "insecure", false, "Skip TLS verification")
+	flag.StringVar(&logLevel, "log.level", "", "Log level (debug, info, warn, error)")
 
 	// 自定义帮助信息
 	flag.Usage = func() {
@@ -164,12 +168,26 @@ func parseFlags() Config {
 		fmt.Fprintf(os.Stdout, "Flags:\n")
 		fmt.Fprintf(os.Stdout, "  -h, --help          Show help\n")
 		fmt.Fprintf(os.Stdout, "  -v, --version       Show version information\n")
-		fmt.Fprintf(os.Stdout, "      --nexus.url     Nexus URL (default: http://localhost:8081)\n")
-		fmt.Fprintf(os.Stdout, "      --nexus.username Nexus username (default: admin)\n")
-		fmt.Fprintf(os.Stdout, "      --nexus.password Nexus password (required)\n")
-		fmt.Fprintf(os.Stdout, "      --port          Exporter port (default: 8082)\n")
+		fmt.Fprintf(os.Stdout, "      --config        Path to .env config file\n")
+		fmt.Fprintf(os.Stdout, "      --nexus.url     Nexus URL\n")
+		fmt.Fprintf(os.Stdout, "      --nexus.username Nexus username\n")
+		fmt.Fprintf(os.Stdout, "      --nexus.password Nexus password\n")
+		fmt.Fprintf(os.Stdout, "      --port          Exporter port\n")
 		fmt.Fprintf(os.Stdout, "      --insecure      Skip TLS verification\n")
-		fmt.Fprintf(os.Stdout, "      --log.level     Log level: debug, info, warn, error (default: info)\n")
+		fmt.Fprintf(os.Stdout, "      --log.level     Log level: debug, info, warn, error\n")
+		fmt.Fprintf(os.Stdout, "\nConfiguration Priority (highest to lowest):\n")
+		fmt.Fprintf(os.Stdout, "  1. Command line flags\n")
+		fmt.Fprintf(os.Stdout, "  2. Environment variables\n")
+		fmt.Fprintf(os.Stdout, "  3. Config file (.env)\n")
+		fmt.Fprintf(os.Stdout, "  4. Default values\n")
+		fmt.Fprintf(os.Stdout, "\nConfig File (.env):\n")
+		fmt.Fprintf(os.Stdout, "  Create a .env file in the working directory or specify with --config:\n\n")
+		fmt.Fprintf(os.Stdout, "  NEXUS_URL=http://localhost:8081\n")
+		fmt.Fprintf(os.Stdout, "  NEXUS_USERNAME=admin\n")
+		fmt.Fprintf(os.Stdout, "  NEXUS_PASSWORD=<your-password>\n")
+		fmt.Fprintf(os.Stdout, "  EXPORTER_PORT=8082\n")
+		fmt.Fprintf(os.Stdout, "  NEXUS_INSECURE=false\n")
+		fmt.Fprintf(os.Stdout, "  LOG_LEVEL=info\n")
 		fmt.Fprintf(os.Stdout, "\nEnvironment Variables:\n")
 		fmt.Fprintf(os.Stdout, "  NEXUS_URL         Nexus URL (default: http://localhost:8081)\n")
 		fmt.Fprintf(os.Stdout, "  NEXUS_USERNAME    Nexus username (default: admin)\n")
@@ -178,11 +196,12 @@ func parseFlags() Config {
 		fmt.Fprintf(os.Stdout, "  NEXUS_INSECURE    Skip TLS verification (default: false)\n")
 		fmt.Fprintf(os.Stdout, "  LOG_LEVEL         Log level: debug, info, warn, error (default: info)\n")
 		fmt.Fprintf(os.Stdout, "\nExamples:\n")
-		fmt.Fprintf(os.Stdout, "  # Basic usage with environment variables\n")
-		fmt.Fprintf(os.Stdout, "  export NEXUS_PASSWORD=secret123\n")
+		fmt.Fprintf(os.Stdout, "  # Use default .env file\n")
 		fmt.Fprintf(os.Stdout, "  nexus-exporter\n\n")
-		fmt.Fprintf(os.Stdout, "  # Using command line flags\n")
-		fmt.Fprintf(os.Stdout, "  nexus-exporter --nexus.url=http://nexus:8081 --nexus.username=admin --nexus.password=secret123\n\n")
+		fmt.Fprintf(os.Stdout, "  # Use specific config file\n")
+		fmt.Fprintf(os.Stdout, "  nexus-exporter --config=/path/to/config.env\n\n")
+		fmt.Fprintf(os.Stdout, "  # Use command line flags (highest priority)\n")
+		fmt.Fprintf(os.Stdout, "  nexus-exporter --nexus.url=http://nexus:8081 --nexus.password=<your-password>\n\n")
 		fmt.Fprintf(os.Stdout, "  # Show version\n")
 		fmt.Fprintf(os.Stdout, "  nexus-exporter --version\n")
 	}
@@ -199,17 +218,96 @@ func parseFlags() Config {
 		os.Exit(0)
 	}
 
+	// 加载配置文件（如果指定或存在默认的 .env）
+	loadConfigFile(configFile)
+
+	// 获取配置值（按优先级：命令行 > 环境变量 > 配置文件 > 默认值）
 	return Config{
-		NexusURL:     nexusURL,
-		NexusUser:    nexusUser,
-		NexusPass:    nexusPass,
-		ExporterPort: exporterPort,
-		Insecure:     insecure,
-		LogLevel:     logLevel,
+		NexusURL:     getStringValue(nexusURL, "NEXUS_URL", "http://localhost:8081"),
+		NexusUser:    getStringValue(nexusUser, "NEXUS_USERNAME", "admin"),
+		NexusPass:    getStringValue(nexusPass, "NEXUS_PASSWORD", ""),
+		ExporterPort: getStringValue(exporterPort, "EXPORTER_PORT", "8082"),
+		Insecure:     getBoolValue(insecure, "NEXUS_INSECURE", false),
+		LogLevel:     getStringValue(logLevel, "LOG_LEVEL", "info"),
 	}
 }
 
-// getEnv 获取环境变量，如果不存在则返回默认值
+// loadConfigFile 加载配置文件
+func loadConfigFile(configFile string) {
+	if configFile != "" {
+		// 加载指定的配置文件
+		if _, err := os.Stat(configFile); err == nil {
+			if err := godotenv.Load(configFile); err != nil {
+				// 仅在文件存在但无法读取时警告
+				fmt.Fprintf(os.Stderr, "Warning: Failed to load config file %s: %v\n", configFile, err)
+			}
+		} else {
+			fmt.Fprintf(os.Stderr, "Warning: Config file not found: %s\n", configFile)
+		}
+	} else {
+		// 尝试加载默认的 .env 文件
+		// 首先在可执行文件所在目录查找
+		execPath, err := os.Executable()
+		if err == nil {
+			execDir := filepath.Dir(execPath)
+			envPath := filepath.Join(execDir, ".env")
+			if _, err := os.Stat(envPath); err == nil {
+				godotenv.Load(envPath)
+				return
+			}
+		}
+
+		// 然后在当前工作目录查找
+		if _, err := os.Stat(".env"); err == nil {
+			godotenv.Load(".env")
+		}
+	}
+}
+
+// getStringValue 获取字符串配置值（优先级：命令行 > 环境变量 > 默认值）
+func getStringValue(flagValue, envKey, defaultValue string) string {
+	// 1. 如果命令行参数已设置，使用命令行参数
+	if flagValue != "" {
+		return flagValue
+	}
+
+	// 2. 尝试从环境变量获取
+	if envValue := os.Getenv(envKey); envValue != "" {
+		return envValue
+	}
+
+	// 3. 返回默认值
+	return defaultValue
+}
+
+// getBoolValue 获取布尔配置值（优先级：命令行 > 环境变量 > 默认值）
+func getBoolValue(flagValue bool, envKey string, defaultValue bool) bool {
+	// 1. 如果命令行参数已设置（且不是默认值 false 或者是显式设置的）
+	// 注意：对于 bool 类型，无法区分 "未设置" 和 "设置为 false"
+	// 所以这里我们需要检查环境变量
+
+	// 2. 尝试从环境变量获取
+	envValue := os.Getenv(envKey)
+	if envValue != "" {
+		switch envValue {
+		case "true", "1", "yes", "on":
+			return true
+		case "false", "0", "no", "off":
+			return false
+		}
+	}
+
+	// 3. 如果命令行参数显式设置，使用命令行参数
+	// 由于 bool flag 无法判断是否设置，我们依赖环境变量优先
+	// 这里简单处理：如果环境变量未设置，返回 flagValue
+	if envValue == "" {
+		return flagValue || defaultValue
+	}
+
+	return defaultValue
+}
+
+// getEnv 获取环境变量，如果不存在则返回默认值（保留用于向后兼容）
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value

@@ -35,6 +35,9 @@ vendor/
 .env.*.local
 *.env
 
+# 保留示例配置文件
+!.env.example
+
 # Secrets and credentials
 *.pem
 *.key
