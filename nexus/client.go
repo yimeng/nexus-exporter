@@ -190,6 +190,12 @@ type ComponentList struct {
 	ContinuationToken string      `json:"continuationToken,omitempty"`
 }
 
+// AssetList 表示资产列表响应
+type AssetList struct {
+	Items             []Asset `json:"items"`
+	ContinuationToken string  `json:"continuationToken,omitempty"`
+}
+
 // Component 表示组件信息
 type Component struct {
 	ID         string            `json:"id"`
@@ -346,6 +352,22 @@ func (c *Client) GetComponents(repository string) (*ComponentList, error) {
 	}
 
 	var list ComponentList
+	if err := json.Unmarshal(data, &list); err != nil {
+		return nil, err
+	}
+
+	return &list, nil
+}
+
+// GetAssets 获取资产列表
+func (c *Client) GetAssets(repository string) (*AssetList, error) {
+	path := "/service/rest/v1/assets?repository=" + repository
+	data, err := c.doRequest("GET", path)
+	if err != nil {
+		return nil, err
+	}
+
+	var list AssetList
 	if err := json.Unmarshal(data, &list); err != nil {
 		return nil, err
 	}

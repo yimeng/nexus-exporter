@@ -23,6 +23,9 @@ type NexusCollector struct {
 	// 仓库指标
 	RepositoryInfo          *prometheus.Desc
 	RepositoryComponentCount *prometheus.Desc
+	RepositoryOnline        *prometheus.Desc
+	RepositorySize          *prometheus.Desc
+	RepositoryAssetCount    *prometheus.Desc
 
 	// JVM 指标
 	JVMMemoryUsed *prometheus.Desc
@@ -74,6 +77,21 @@ func NewNexusCollector(client *nexus.Client) *NexusCollector {
 			"Number of components in repository",
 			[]string{"name"}, nil,
 		),
+		RepositoryOnline: prometheus.NewDesc(
+			"nexus_repository_online",
+			"Repository online status (1=online, 0=offline)",
+			[]string{"name"}, nil,
+		),
+		RepositorySize: prometheus.NewDesc(
+			"nexus_repository_size_bytes",
+			"Total size of repository in bytes (estimated from assets)",
+			[]string{"name"}, nil,
+		),
+		RepositoryAssetCount: prometheus.NewDesc(
+			"nexus_repository_assets_count",
+			"Number of assets in repository",
+			[]string{"name"}, nil,
+		),
 		JVMMemoryUsed: prometheus.NewDesc(
 			"nexus_jvm_memory_used_bytes",
 			"JVM memory used in bytes",
@@ -111,6 +129,9 @@ func (c *NexusCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.BlobStoreBlobCount
 	ch <- c.RepositoryInfo
 	ch <- c.RepositoryComponentCount
+	ch <- c.RepositoryOnline
+	ch <- c.RepositorySize
+	ch <- c.RepositoryAssetCount
 	ch <- c.JVMMemoryUsed
 	ch <- c.JVMMemoryMax
 	ch <- c.JVMThreads
