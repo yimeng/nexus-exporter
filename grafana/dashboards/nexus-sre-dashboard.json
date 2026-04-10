@@ -22,10 +22,15 @@
     {
       "collapsed": false,
       "datasource": null,
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
       "panels": [],
-      "title": "🎯 Service Availability",
+      "title": "\ud83c\udfaf Service Availability",
       "type": "row"
     },
     {
@@ -34,17 +39,54 @@
       "fieldConfig": {
         "defaults": {
           "mappings": [
-            {"options": {"0": {"color": "red", "text": "DOWN"}}, "type": "value"},
-            {"options": {"1": {"color": "green", "text": "UP"}}, "type": "value"}
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "DOWN"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "1": {
+                  "color": "green",
+                  "text": "UP"
+                }
+              },
+              "type": "value"
+            }
           ],
-          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": 0}, {"color": "green", "value": 1}]},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
           "unit": "none"
         },
         "overrides": []
       },
-      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1},
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
       "id": 2,
-      "options": {"colorMode": "background", "graphMode": "area", "orientation": "auto"},
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "orientation": "auto"
+      },
       "pluginVersion": "12.4.0",
       "targets": [
         {
@@ -60,10 +102,19 @@
       "datasource": "${datasource}",
       "description": "Current Nexus version",
       "fieldConfig": {
-        "defaults": {"custom": {"displayMode": "json-view"}},
+        "defaults": {
+          "custom": {
+            "displayMode": "json-view"
+          }
+        },
         "overrides": []
       },
-      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1},
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
       "id": 3,
       "targets": [
         {
@@ -80,12 +131,33 @@
       "description": "Uptime percentage over last 24h",
       "fieldConfig": {
         "defaults": {
-          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": 0}, {"color": "yellow", "value": 0.99}, {"color": "green", "value": 0.999}]},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 0.99
+              },
+              {
+                "color": "green",
+                "value": 0.999
+              }
+            ]
+          },
           "unit": "percentunit"
         },
         "overrides": []
       },
-      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1},
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
       "id": 4,
       "targets": [
         {
@@ -101,10 +173,17 @@
       "datasource": "${datasource}",
       "description": "Number of repositories",
       "fieldConfig": {
-        "defaults": {"unit": "none"},
+        "defaults": {
+          "unit": "none"
+        },
         "overrides": []
       },
-      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1},
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
       "id": 5,
       "targets": [
         {
@@ -119,22 +198,48 @@
     {
       "collapsed": false,
       "datasource": null,
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5},
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
       "id": 6,
       "panels": [],
-      "title": "💾 Storage Capacity",
+      "title": "\ud83d\udcbe Storage Capacity",
       "type": "row"
     },
     {
       "datasource": "${datasource}",
       "description": "Blob store usage over time",
       "fieldConfig": {
-        "defaults": {"custom": {"drawStyle": "line", "lineWidth": 2}, "unit": "bytes"},
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2
+          },
+          "unit": "bytes"
+        },
         "overrides": []
       },
-      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6},
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
       "id": 7,
-      "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["mean", "max", "last"]}},
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max",
+            "last"
+          ]
+        }
+      },
       "targets": [
         {
           "expr": "nexus_blobstore_bytes_total",
@@ -157,14 +262,39 @@
         "defaults": {
           "max": 100,
           "min": 0,
-          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 70}, {"color": "red", "value": 85}]},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
           "unit": "percent"
         },
         "overrides": []
       },
-      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
       "id": 8,
-      "options": {"displayMode": "lcd", "orientation": "horizontal", "showUnfilled": true},
+      "options": {
+        "displayMode": "lcd",
+        "orientation": "horizontal",
+        "showUnfilled": true
+      },
       "targets": [
         {
           "expr": "(nexus_blobstore_bytes_total / (nexus_blobstore_bytes_total + nexus_blobstore_bytes_free)) * 100",
@@ -179,12 +309,22 @@
       "datasource": "${datasource}",
       "description": "Number of blobs per blob store",
       "fieldConfig": {
-        "defaults": {"unit": "none"},
+        "defaults": {
+          "unit": "none"
+        },
         "overrides": []
       },
-      "gridPos": {"h": 4, "w": 12, "x": 0, "y": 14},
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
       "id": 9,
-      "options": {"colorMode": "value", "graphMode": "area"},
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area"
+      },
       "targets": [
         {
           "expr": "nexus_blobstore_blobs_count",
@@ -199,12 +339,22 @@
       "datasource": "${datasource}",
       "description": "Components count by repository",
       "fieldConfig": {
-        "defaults": {"unit": "none"},
+        "defaults": {
+          "unit": "none"
+        },
         "overrides": []
       },
-      "gridPos": {"h": 4, "w": 12, "x": 12, "y": 14},
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
       "id": 10,
-      "options": {"displayMode": "value", "graphMode": "area"},
+      "options": {
+        "displayMode": "value",
+        "graphMode": "area"
+      },
       "targets": [
         {
           "expr": "nexus_repository_components_count",
@@ -218,22 +368,43 @@
     {
       "collapsed": false,
       "datasource": null,
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 18},
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
       "id": 11,
       "panels": [],
-      "title": "☕ JVM Performance",
+      "title": "\u2615 JVM Performance",
       "type": "row"
     },
     {
       "datasource": "${datasource}",
       "description": "JVM memory usage",
       "fieldConfig": {
-        "defaults": {"custom": {"drawStyle": "line", "lineWidth": 2}, "unit": "bytes"},
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2
+          },
+          "unit": "bytes"
+        },
         "overrides": []
       },
-      "gridPos": {"h": 8, "w": 16, "x": 0, "y": 19},
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 19
+      },
       "id": 12,
-      "options": {"legend": {"displayMode": "table", "placement": "right"}},
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right"
+        }
+      },
       "targets": [
         {
           "expr": "nexus_jvm_memory_used_bytes",
@@ -253,12 +424,23 @@
       "datasource": "${datasource}",
       "description": "JVM thread count",
       "fieldConfig": {
-        "defaults": {"unit": "none"},
+        "defaults": {
+          "unit": "none"
+        },
         "overrides": []
       },
-      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 19},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 19
+      },
       "id": 13,
-      "options": {"legend": {"displayMode": "list"}},
+      "options": {
+        "legend": {
+          "displayMode": "list"
+        }
+      },
       "targets": [
         {
           "expr": "nexus_jvm_threads_count",
@@ -272,10 +454,15 @@
     {
       "collapsed": false,
       "datasource": null,
-      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 27},
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
       "id": 14,
       "panels": [],
-      "title": "⚙️ Task Health",
+      "title": "\u2699\ufe0f Task Health",
       "type": "row"
     },
     {
@@ -283,22 +470,42 @@
       "description": "Total number of scheduled tasks",
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "fixed", "fixedColor": "blue"},
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
           "mappings": [],
-          "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": 0}]},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": 0
+              }
+            ]
+          },
           "unit": "none"
         }
       },
-      "gridPos": {"h": 3, "w": 6, "x": 0, "y": 28},
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 0,
+        "y": 28
+      },
       "id": 50,
-      "options": {"colorMode": "background", "graphMode": "area", "orientation": "auto"},
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "orientation": "auto"
+      },
       "targets": [
         {
           "expr": "count(nexus_task_status)",
           "refId": "A"
         }
       ],
-      "title": "📊 Total Tasks",
+      "title": "\ud83d\udcca Total Tasks",
       "type": "stat"
     },
     {
@@ -306,22 +513,42 @@
       "description": "Number of healthy tasks",
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "fixed", "fixedColor": "green"},
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
           "mappings": [],
-          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": 0}]},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
           "unit": "none"
         }
       },
-      "gridPos": {"h": 3, "w": 6, "x": 6, "y": 28},
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 6,
+        "y": 28
+      },
       "id": 51,
-      "options": {"colorMode": "background", "graphMode": "area", "orientation": "auto"},
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "orientation": "auto"
+      },
       "targets": [
         {
           "expr": "count(nexus_task_status == 1)",
           "refId": "A"
         }
       ],
-      "title": "✅ Healthy Tasks",
+      "title": "\u2705 Healthy Tasks",
       "type": "stat"
     },
     {
@@ -329,31 +556,60 @@
       "description": "Number of failed tasks",
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "fixed", "fixedColor": "green"},
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
           "mappings": [
-            {"options": {"0": {"color": "green", "text": "OK"}}, "type": "value"}
+            {
+              "options": {
+                "0": {
+                  "color": "green",
+                  "text": "OK"
+                }
+              },
+              "type": "value"
+            }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {"color": "green", "value": 0},
-              {"color": "yellow", "value": 1},
-              {"color": "red", "value": 2}
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
             ]
           },
           "unit": "none"
         }
       },
-      "gridPos": {"h": 3, "w": 6, "x": 12, "y": 28},
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 12,
+        "y": 28
+      },
       "id": 52,
-      "options": {"colorMode": "background", "graphMode": "area", "orientation": "auto"},
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "orientation": "auto"
+      },
       "targets": [
         {
           "expr": "count(nexus_task_status == 0)",
           "refId": "A"
         }
       ],
-      "title": "❌ Failed Tasks",
+      "title": "\u274c Failed Tasks",
       "type": "stat"
     },
     {
@@ -361,29 +617,49 @@
       "description": "Task health percentage",
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "thresholds"},
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {"color": "red", "value": 0},
-              {"color": "yellow", "value": 80},
-              {"color": "green", "value": 95}
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "green",
+                "value": 95
+              }
             ]
           },
           "unit": "percent"
         }
       },
-      "gridPos": {"h": 3, "w": 6, "x": 18, "y": 28},
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 18,
+        "y": 28
+      },
       "id": 53,
-      "options": {"colorMode": "background", "graphMode": "area", "orientation": "auto"},
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "orientation": "auto"
+      },
       "targets": [
         {
           "expr": "(count(nexus_task_status == 1) / count(nexus_task_status)) * 100",
           "refId": "A"
         }
       ],
-      "title": "🎯 Health Rate",
+      "title": "\ud83c\udfaf Health Rate",
       "type": "stat"
     },
     {
@@ -392,14 +668,36 @@
       "fieldConfig": {
         "defaults": {
           "mappings": [
-            {"options": {"0": {"color": "red", "text": "❌ FAILED"}}, "type": "value"},
-            {"options": {"1": {"color": "green", "text": "✅ OK"}}, "type": "value"}
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "\u274c FAILED"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "1": {
+                  "color": "green",
+                  "text": "\u2705 OK"
+                }
+              },
+              "type": "value"
+            }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {"color": "red", "value": 0},
-              {"color": "green", "value": 1}
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
             ]
           },
           "custom": {
@@ -410,41 +708,92 @@
         },
         "overrides": [
           {
-            "matcher": {"id": "byName", "options": "Status"},
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
             "properties": [
               {
                 "id": "mappings",
                 "value": [
-                  {"options": {"0": {"color": "red", "text": "❌ FAILED"}}, "type": "value"},
-                  {"options": {"1": {"color": "green", "text": "✅ OK"}}, "type": "value"}
+                  {
+                    "options": {
+                      "0": {
+                        "color": "red",
+                        "text": "\u274c FAILED"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "1": {
+                        "color": "green",
+                        "text": "\u2705 OK"
+                      }
+                    },
+                    "type": "value"
+                  }
                 ]
               },
-              {"id": "custom.displayMode", "value": "color-background"},
-              {"id": "width", "value": 100}
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "width",
+                "value": 100
+              }
             ]
           },
           {
-            "matcher": {"id": "byName", "options": "Task Name"},
+            "matcher": {
+              "id": "byName",
+              "options": "Task Name"
+            },
             "properties": [
-              {"id": "width", "value": 300}
+              {
+                "id": "width",
+                "value": 300
+              }
             ]
           },
           {
-            "matcher": {"id": "byName", "options": "Task Type"},
+            "matcher": {
+              "id": "byName",
+              "options": "Task Type"
+            },
             "properties": [
-              {"id": "width", "value": 250}
+              {
+                "id": "width",
+                "value": 250
+              }
             ]
           },
           {
-            "matcher": {"id": "byName", "options": "Last Run"},
+            "matcher": {
+              "id": "byName",
+              "options": "Last Run"
+            },
             "properties": [
-              {"id": "unit", "value": "dateTimeAsLocal"},
-              {"id": "width", "value": 180}
+              {
+                "id": "unit",
+                "value": "dateTimeAsLocal"
+              },
+              {
+                "id": "width",
+                "value": 180
+              }
             ]
           }
         ]
       },
-      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 31},
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
       "id": 15,
       "targets": [
         {
@@ -460,7 +809,7 @@
           "refId": "B"
         }
       ],
-      "title": "📋 Task Health Status",
+      "title": "\ud83d\udccb Task Health Status",
       "type": "table",
       "transformations": [
         {
@@ -495,42 +844,105 @@
       "description": "Repository capacity, status and metrics",
       "fieldConfig": {
         "defaults": {
-          "custom": {"displayMode": "auto", "inspect": false},
+          "custom": {
+            "displayMode": "auto",
+            "inspect": false
+          },
           "mappings": [],
-          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
         },
         "overrides": [
           {
-            "matcher": {"id": "byName", "options": "Status"},
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
             "properties": [
               {
                 "id": "mappings",
                 "value": [
-                  {"options": {"0": {"color": "red", "text": "Offline"}}, "type": "value"},
-                  {"options": {"1": {"color": "green", "text": "Online"}}, "type": "value"}
+                  {
+                    "options": {
+                      "0": {
+                        "color": "red",
+                        "text": "Offline"
+                      }
+                    },
+                    "type": "value"
+                  },
+                  {
+                    "options": {
+                      "1": {
+                        "color": "green",
+                        "text": "Online"
+                      }
+                    },
+                    "type": "value"
+                  }
                 ]
               },
-              {"id": "custom.displayMode", "value": "color-background"}
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
             ]
           },
           {
-            "matcher": {"id": "byName", "options": "Size"},
+            "matcher": {
+              "id": "byName",
+              "options": "Size"
+            },
             "properties": [
-              {"id": "unit", "value": "bytes"},
-              {"id": "custom.displayMode", "value": "gradient-gauge"}
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "gradient-gauge"
+              }
             ]
           },
           {
-            "matcher": {"id": "byName", "options": "Assets"},
-            "properties": [{"id": "unit", "value": "short"}]
+            "matcher": {
+              "id": "byName",
+              "options": "Assets"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
           },
           {
-            "matcher": {"id": "byName", "options": "Components"},
-            "properties": [{"id": "unit", "value": "short"}]
+            "matcher": {
+              "id": "byName",
+              "options": "Components"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              }
+            ]
           }
         ]
       },
-      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 39},
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      },
       "id": 16,
       "targets": [
         {
@@ -567,9 +979,10 @@
       "title": "Repository Capacity & Status",
       "transformations": [
         {
-          "id": "merge",
+          "id": "joinByField",
           "options": {
-            "byField": "name"
+            "byField": "name",
+            "mode": "outer"
           }
         },
         {
@@ -612,10 +1025,48 @@
   "refresh": "30s",
   "schemaVersion": 41,
   "style": "dark",
-  "tags": ["nexus", "sre", "monitoring"],
-  "templating": {"list": [{"name": "datasource", "type": "datasource", "query": "prometheus", "current": {}, "hide": 0, "includeAll": false, "multi": false, "options": [], "refresh": 1, "regex": "", "skipUrlSync": false, "title": "Data Source", "description": "Select Prometheus or VictoriaMetrics data source"}]},
-  "time": {"from": "now-6h", "to": "now"},
-  "timepicker": {"refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]},
+  "tags": [
+    "nexus",
+    "sre",
+    "monitoring"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "title": "Data Source",
+        "description": "Select Prometheus or VictoriaMetrics data source"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
+  },
   "timezone": "browser",
   "title": "Nexus SRE Dashboard",
   "uid": "nexus-sre",
