@@ -225,6 +225,19 @@ make docker
 ./nexus-exporter --nexus.url=https://192.168.0.110:8081 --nexus.password=<your-password> --insecure
 ```
 
+Or add to `.env` config file:
+```bash
+NEXUS_URL=https://192.168.0.110:8081
+NEXUS_INSECURE=true
+```
+
+### Normal HTTPS Certificate (Non Self-Signed)
+
+If Nexus uses a valid HTTPS certificate (e.g., Let's Encrypt or enterprise CA), **no special flags are needed**:
+```bash
+./nexus-exporter --nexus.url=https://nexus.example.com --nexus.password=<your-password>
+```
+
 ## Development
 
 ```bash

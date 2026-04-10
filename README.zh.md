@@ -229,6 +229,19 @@ make docker
 ./nexus-exporter --nexus.url=https://192.168.0.110:8081 --nexus.password=<your-password> --insecure
 ```
 
+或者在 `.env` 配置文件中添加：
+```bash
+NEXUS_URL=https://192.168.0.110:8081
+NEXUS_INSECURE=true
+```
+
+### 正常 HTTPS 证书（非自签名）
+
+如果 Nexus 使用正常的 HTTPS 证书（如 Let's Encrypt 或企业证书），**不需要** `--insecure` 参数：
+```bash
+./nexus-exporter --nexus.url=https://nexus.example.com --nexus.password=<your-password>
+```
+
 ## 开发
 
 ```bash
